@@ -1,6 +1,8 @@
 package fr.umontpellier.iut.rails;
 
 import fr.umontpellier.iut.rails.data.CarteTransport;
+import fr.umontpellier.iut.rails.data.Couleur;
+import fr.umontpellier.iut.rails.data.TypeCarteTransport;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,18 +26,32 @@ public class PilesCartesTransport {
      * @return la carte retirée ou null
      */
     public CarteTransport piocher() {
-        throw new RuntimeException("Méthode pas encore implémentée !");
+        CarteTransport carte= new CarteTransport(TypeCarteTransport.WAGON, Couleur.VERT, true, true);
+        if (this.pilePioche== null){
+            Collections.shuffle(pileDefausse);
+        }
+        if (this.pilePioche.remove(0)!= null){
+            return carte;
+        }
+        else{
+            return null;
+        }
     }
 
     public void defausser(CarteTransport carte) {
-        throw new RuntimeException("Méthode pas encore implémentée !");
+        this.pileDefausse.add(carte);
     }
 
     /**
      * @return true si aucune carte ne peut être prise (si les deux piles sont vides)
      */
     public boolean estVide() {
-        throw new RuntimeException("Méthode pas encore implémentée !");
+        boolean veri= false;
+        if (this.pilePioche== null && this.pileDefausse== null){
+            veri= true;
+            return veri;
+        }
+        return veri;
     }
 
     public List<CarteTransport> getCartes() {
