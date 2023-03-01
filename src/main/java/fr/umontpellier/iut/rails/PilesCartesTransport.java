@@ -26,16 +26,16 @@ public class PilesCartesTransport {
      * @return la carte retirée ou null
      */
     public CarteTransport piocher() {
-        CarteTransport carte= new CarteTransport(TypeCarteTransport.WAGON, Couleur.VERT, true, true);
-        if (this.pilePioche== null){
+        if(estVide()){
+           return null;
+        }
+        else if(pilePioche.isEmpty()){
             Collections.shuffle(pileDefausse);
+            pilePioche.addAll(pileDefausse);
         }
-        if (this.pilePioche.remove(0)!= null){
-            return carte;
-        }
-        else{
-            return null;
-        }
+        CarteTransport carteRetournee=pilePioche.get(0);
+        pilePioche.remove(0);
+        return carteRetournee;
     }
 
     public void defausser(CarteTransport carte) {
@@ -46,12 +46,7 @@ public class PilesCartesTransport {
      * @return true si aucune carte ne peut être prise (si les deux piles sont vides)
      */
     public boolean estVide() {
-        boolean veri= false;
-        if (this.pilePioche== null && this.pileDefausse== null){
-            veri= true;
-            return veri;
-        }
-        return veri;
+        return pileDefausse.isEmpty() && pilePioche.isEmpty();
     }
 
     public List<CarteTransport> getCartes() {
