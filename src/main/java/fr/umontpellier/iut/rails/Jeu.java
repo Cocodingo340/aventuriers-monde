@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+
 public class Jeu implements Runnable {
     /**
      * Liste des joueurs
@@ -137,16 +138,64 @@ public class Jeu implements Runnable {
      * et le nombre de pions wagon qu'il souhaite prendre) puis exécuter les tours des joueurs en appelant la
      * méthode Joueur.jouerTour() jusqu'à ce que la condition de fin de partie soit réalisée.
      */
+
+
     public void run() {
+        for(int i=0; i<joueurs.size(); i++){
+            this.joueurCourant = this.joueurs.get(i);
+            List<CarteTransport> CarteTransportJoueur = new ArrayList<>();
+            for (int j = 0; j < 2; j++) {
+                joueurCourant.ajoutCarteTransport(piocherCarteWagon());
+            }
+            for (int j = 0; j < 6; j++) {
+                joueurCourant.ajoutCarteTransport(piocherCarteBateau());
+            }
+
+            ArrayList<Destination> destinations = this.getRandomDestinationCard(5);
+            List<Destination> aSupprimer = joueurCourant.choisirDestinations(destinations, 2);
+            int[] boatwagon=this.joueurCourant.choisirPions();
+            int nbBateau = boatwagon[0];
+            int nbWagon = boatwagon[1];
+            this.joueurCourant.setNbPionsBateauEnReserve(this.joueurCourant.getNbPionsBateauEnReserve() - nbBateau);
+            this.joueurCourant.setNbPionsWagonEnReserve(this.joueurCourant.getNbPionsWagonEnReserve() - nbWagon);
+            this.joueurCourant.setNbPionsBateau(nbBateau);
+            this.joueurCourant.setNbPionsWagon(nbWagon);
+
+
+
+
+        }
         // IMPORTANT : Le corps de cette fonction est à réécrire entièrement
         // Un exemple très simple est donné pour illustrer l'utilisation de certaines méthodes
-        for (Joueur j : joueurs) {
+        /*for (Joueur j : joueurs) {
             joueurCourant = j;
             j.jouerTour();
+        }*/
+        boolean finPartie = false;
+        int tourRestant = 2;
+        while (!finPartie && tourRestant!=0) {
+            for (Joueur j : joueurs) {
+                joueurCourant = j;
+                j.jouerTour();
+                if(j.getNbPionsBateau()+j.getNbPionsWagon()<=6){
+                    finPartie = true;
+                }
+
+            }
+            if(finPartie){
+                tourRestant--;
+            }
         }
         // Fin de la partie
-        prompt("Fin de la partie.", new ArrayList<>(), true);
+        prompt("Fin de la partie. BRAVO", new ArrayList<>(), true);
     }
+
+
+
+
+
+
+
 
 
     /**
@@ -158,8 +207,28 @@ public class Jeu implements Runnable {
         return pilesDeCartesWagon.piocher();
     }
 
+    public void piocherNbCarteBateau(int j) {
+        for (int i = 0; i < j-1; i++) {
+            this.piocherCarteWagon();
+        }
+    }
+
     public boolean piocheWagonEstVide() {
         return pilesDeCartesWagon.estVide();
+    }
+
+    public ArrayList<Destination> getRandomDestinationCard(int numberCardToGet){
+        ArrayList<Destination> resultat = new ArrayList<>();
+
+        for(int i=0; i<numberCardToGet; i++){
+            Random rand = new Random();
+            int randomNumber = rand.nextInt(this.pileDestinations.size());
+
+            resultat.add(this.pileDestinations.get(randomNumber));
+            this.pileDestinations.remove(randomNumber);
+        }
+
+        return resultat;
     }
 
     /**

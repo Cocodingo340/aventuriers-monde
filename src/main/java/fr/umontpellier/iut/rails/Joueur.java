@@ -84,6 +84,38 @@ public class Joueur {
         return nom;
     }
 
+    public int getNbPionsWagon() {
+        return nbPionsWagon;
+    }
+
+    public void setNbPionsWagon(int nbPionsWagon) {
+        this.nbPionsWagon = nbPionsWagon;
+    }
+
+    public int getNbPionsWagonEnReserve() {
+        return nbPionsWagonEnReserve;
+    }
+
+    public void setNbPionsWagonEnReserve(int nbPionsWagonEnReserve) {
+        this.nbPionsWagonEnReserve = nbPionsWagonEnReserve;
+    }
+
+    public int getNbPionsBateau() {
+        return nbPionsBateau;
+    }
+
+    public void setNbPionsBateau(int nbPionsBateau) {
+        this.nbPionsBateau = nbPionsBateau;
+    }
+
+    public int getNbPionsBateauEnReserve() {
+        return nbPionsBateauEnReserve;
+    }
+
+    public void setNbPionsBateauEnReserve(int nbPionsBateauEnReserve) {
+        this.nbPionsBateauEnReserve = nbPionsBateauEnReserve;
+    }
+
     /**
      * Cette méthode est appelée à tour de rôle pour chacun des joueurs de la partie.
      * Elle doit réaliser un tour de jeu, pendant lequel le joueur a le choix entre 5 actions possibles :
@@ -96,23 +128,55 @@ public class Joueur {
     void jouerTour() {
         // IMPORTANT : Le corps de cette fonction est à réécrire entièrement
         // Un exemple très simple est donné pour illustrer l'utilisation de certaines méthodes
-        List<String> optionsVilles = new ArrayList<>();
-        for (Ville ville : jeu.getPortsLibres()) {
-            optionsVilles.add(ville.nom());
-        }
+
         List<Bouton> boutons = Arrays.asList(
-                new Bouton("Montpellier"),
-                new Bouton("Sète"));
+                new Bouton("Piocher des cartes transport"),
+                new Bouton("Echanger des pions wagons ou bateau"),
+                new Bouton("Prendre de nouvelles destinations"),
+                new Bouton("Capturer une route"),
+                new Bouton("Construire un port"));
 
         String choix = choisir(
-                "Choisissez votre ville préférée",
-                optionsVilles,
+                "Veuillez choisir une option a effectuer ce tour :\n",
+                null,
                 boutons,
-                true);
+                false);
 
-        if (choix.equals("")) {
-            log(String.format("%s n'aime aucune ville", toLog()));
-        } else {
+        if (choix.equals("Piocher des cartes transport")) {
+        }
+        else if (choix.equals("Echanger des pions wagons ou bateau")) {
+            log(String.format("%s a choisi %s", toLog(), choix));
+            List<Bouton> choixPions = Arrays.asList(new Bouton("PIONS BATEAU"),new Bouton("PIONS WAGON"));
+            String choix1 = choisir(
+                    "Voulez-vous echanger des pions wagons ou des pions bateaux ? Cliquez sur \"PIONS WAGON\" pour prendre des pions wagon de la réserve, ou \"PIONS BATEAU\" pour prendre des pions bateau \");",
+                    null,
+                    choixPions,
+                    false);
+            if (choix1.equals("PIONS WAGON")) {
+                int nbPionsEchanges=choisirNombre("Choissisez combien de Pions Wagons voulez-vous échanger",1,nbPionsBateauEnReserve);
+                nbPionsWagonEnReserve-=nbPionsEchanges;
+                nbPionsBateau-=nbPionsEchanges;
+                nbPionsBateauEnReserve+=nbPionsEchanges;
+                nbPionsWagon+=nbPionsEchanges;
+
+            }
+            else if (choix1.equals("PIONS BATEAU")) {
+                int nbPionsEchanges=choisirNombre("Choissisez combien de Pions Bateau voulez-vous échanger",1,nbPionsWagonEnReserve);
+                nbPionsBateauEnReserve-=nbPionsEchanges;
+                nbPionsWagon-=nbPionsEchanges;
+                nbPionsWagonEnReserve+=nbPionsEchanges;
+                nbPionsBateau+=nbPionsEchanges;
+            }
+
+
+        }
+        else if (choix.equals("Prendre de nouvelles destinations")) {
+            log(String.format("%s a choisi %s", toLog(), choix));
+        }
+        else if (choix.equals("Capturer une route")) {
+            log(String.format("%s a choisi %s", toLog(), choix));
+        }
+        else if (choix.equals("Construire un port")) {
             log(String.format("%s a choisi %s", toLog(), choix));
         }
     }
@@ -186,6 +250,107 @@ public class Joueur {
                 return entree;
             }
         }
+    }
+
+    public List<Destination> choisirDestinations(List<Destination> destinationsPossibles, int n) {
+        List<Destination> resultatCardToDefausser = new ArrayList<>();
+        int defausser = 0;
+        boolean passe = false;
+        while(defausser < n && !passe){
+            List<Bouton> boutons = new ArrayList<>();
+            for(int j=0; j<destinationsPossibles.size(); j++){
+                boutons.add(new Bouton(destinationsPossibles.get(j).getNom()));
+            }
+
+            System.out.println(this.nom);
+            String input = choisir("Choisissez une carte à défausser.", null, boutons, true);
+
+            if(input.equals("")){
+                //Le joueur garde toutes ces cartes
+                passe = true;
+            }else {
+                //Le joueur défausse une carte
+                defausser++;
+                int i=0;
+                boolean find = false;
+                while(i<destinationsPossibles.size() && find == false){
+                    if(destinationsPossibles.get(i).getNom().equals(input)){
+                        find = true;
+                        resultatCardToDefausser.add(destinationsPossibles.get(i));
+                        destinationsPossibles.remove(i);
+                    }
+                    i++;
+                }
+            }
+
+
+        }
+
+        //Ajout des cartes destinations non défausser dans le jeu du joueur
+        ArrayList<Destination> copieRes = new ArrayList();
+        for(int i=0; i<resultatCardToDefausser.size(); i++){
+            copieRes.add(resultatCardToDefausser.get(i));
+        }
+
+        for(int i=0; i<destinationsPossibles.size(); i++){
+            this.destinations.add(destinationsPossibles.get(i));
+        }
+
+
+
+        return resultatCardToDefausser;
+    }
+
+    public int[] choisirPions(){
+        int nbBoat=0;int nbWagon=0;
+        boolean passe = false;
+        do {
+
+            jeu.prompt("Veuillez choisir le nombre de Bateaux que vous voulez piocher, au maximum 50", new ArrayList<>(), false);
+            String strBoat = jeu.lireLigne();
+
+            nbBoat = Integer.parseInt(strBoat);
+            while (nbBoat > 50) {
+                jeu.prompt("ERREUR : Veuillez rechoisir le nombre de Bateaux que vous voulez piocher, au maximum 50", new ArrayList<>(), false);
+                strBoat = jeu.lireLigne();
+                nbBoat = Integer.parseInt(strBoat);
+            }
+            jeu.prompt("Veuillez choisir maintenant le nombre de Wagons que vous voulez piocher, au maximum 25", new ArrayList<>(), false);
+            String strWagon = jeu.lireLigne();
+            nbWagon = Integer.parseInt(strWagon);
+            while (nbWagon > 25) {
+                jeu.prompt("ERREUR : Veuillez rechoisir le nombre de Wagons que vous voulez piocher, au maximum 25", new ArrayList<>(), false);
+                strWagon = jeu.lireLigne();
+                nbWagon = Integer.parseInt(strWagon);
+            }
+        }
+        while(nbBoat+nbWagon != 60);
+
+        return new int[]{nbBoat,nbWagon};
+
+    }
+
+    public int choisirNombre(String instruction, int min, int max ) {
+
+        while (true) {
+            jeu.prompt(instruction, null, true);
+            String entree = jeu.lireLigne();
+
+            try {
+                int choix = Integer.parseInt(entree);
+                if (choix >= min && choix <= max) {
+                    return choix;
+                } else {
+                    log(String.format("Veuillez entrer un nombre entre %d et %d", min, max));
+                }
+            } catch (NumberFormatException e) {
+                log("Veuillez entrer un nombre valide");
+            }
+        }
+    }
+
+    public void ajoutCarteTransport(CarteTransport carte){
+        this.cartesTransport.add(carte);
     }
 
     /**
