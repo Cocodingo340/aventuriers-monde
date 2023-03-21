@@ -153,16 +153,16 @@ public class Jeu implements Runnable {
             this.joueurCourant = this.joueurs.get(i);
             List<CarteTransport> CarteTransportJoueur = new ArrayList<>();
             for (int j = 0; j < 2; j++) {
-                joueurCourant.ajoutCarteTransport(piocherCarteWagon());
+                this.joueurCourant.ajoutCarteTransport(piocherCarteWagon());
             }
             for (int j = 0; j < 6; j++) {
-                joueurCourant.ajoutCarteTransport(piocherCarteBateau());
+                this.joueurCourant.ajoutCarteTransport(piocherCarteBateau());
             }
 
             List<Destination> destinations = this.getRandomDestinationCard(5);
-            List<Destination> aSupprimer = this.joueurCourant.choisirDestinations(destinations, 2);
+            List<Destination> aSupprimer = this.joueurCourant.choisirDestinations(destinations, 3);
             for(Destination d : aSupprimer){
-                pileDestinations.add(pileDestinations.size(),d);
+                this.pileDestinations.add(pileDestinations.size(),d);
             }
 
             int wagon=this.joueurCourant.choisirNombre("Veuillez choisir le nombre de pions wagon que vous voulez, entre 10 et 25",10,25);
@@ -180,20 +180,18 @@ public class Jeu implements Runnable {
 
         boolean finPartie = false;
         int tourRestant = 2;
-        while (true) {
-            getJoueurCourant().jouerTour();
-            if (getJoueurCourant().getNbPionsBateau()+getJoueurCourant().getNbPionsWagon() <= 6) {
-                // un joueur a moins de 2 wagons restants à la fin de son tour
-                // -> plus qu'un tour de jeu
-                passeAuJoueurSuivant();
-                break;
+        while (finPartie==false && tourRestant>0) {
+            if(finPartie){
+                tourRestant--;
             }
-            passeAuJoueurSuivant();
-        }
-        // Dernier tour de jeu
-        for (int i = 0; i < joueurs.size(); i++) {
-            getJoueurCourant().jouerTour();
-            passeAuJoueurSuivant();
+            for (int i = 0; i < joueurs.size(); i++) {
+                if(joueurCourant.getNbPionsWagon()+joueurCourant.getNbPionsWagon()<=6){
+                    finPartie=true;
+                }
+                joueurCourant=joueurs.get(i);
+                joueurCourant.jouerTour();
+            }
+
         }
         // Fin de la partie
         prompt("Fin de la partie.", new ArrayList<>(), true);
@@ -256,11 +254,6 @@ public class Jeu implements Runnable {
         return pilesDeCartesWagon.estVide();
     }
 
-    public void passeAuJoueurSuivant() {
-        int i = joueurs.indexOf(getJoueurCourant());
-        i = (i + 1) % joueurs.size();
-        joueurCourant=joueurs.get(i);
-    }
 
     public ArrayList<Destination> getRandomDestinationCard(int numberCardToGet){
         ArrayList<Destination> resultat = new ArrayList<>();
@@ -303,9 +296,6 @@ public class Jeu implements Runnable {
         inputQueue.add(message);
     }
 
-    public Joueur getJoueurCourant() {
-        return joueurCourant;
-    }
 
 
 

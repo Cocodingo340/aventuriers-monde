@@ -116,6 +116,14 @@ public class Joueur {
         this.nbPionsBateauEnReserve = nbPionsBateauEnReserve;
     }
 
+    public void enleverDestination(Destination destination) {
+        this.destinations.remove(destination);
+    }
+
+    public void ajouterDestination(Destination destination) {
+        this.destinations.add(destination);
+    }
+
     /**
      * Cette méthode est appelée à tour de rôle pour chacun des joueurs de la partie.
      * Elle doit réaliser un tour de jeu, pendant lequel le joueur a le choix entre 5 actions possibles :
@@ -243,51 +251,36 @@ public class Joueur {
 
 
     public List<Destination> choisirDestinations(List<Destination> destinationsPossibles, int n) {
-        List<Destination> resultatCardToDefausser = new ArrayList<>();
-        int defausser = 0;
-        boolean passe = false;
-        while(defausser < n && !passe){
-            List<Bouton> boutons = new ArrayList<>();
-            for(int j=0; j<destinationsPossibles.size(); j++){
-                boutons.add(new Bouton(String.join(" - ", destinationsPossibles.get(j).getVilles())));
+        this.destinations.addAll(destinationsPossibles);
+        List<Destination> defaussees = new ArrayList<>();
+        while (destinationsPossibles.size() > n) {
+            // Préparer les boutons à afficher
+            Collection<Bouton> boutons = new ArrayList<>();
+            for (Destination d : destinationsPossibles) {
+                boutons.add(new Bouton(String.join(" - ",d.getVilles())));
             }
 
-            System.out.println(this.nom);
-            String input = choisir("Choisissez une carte à défausser.", null, boutons, true);
+            // Attendre un choix de l'utilisateur
+            String choix = choisir(
+                    "Choisissez les destinations à défausser",
+                    new ArrayList<>(),
+                    boutons,
+                    true);
+            if (choix.equals("")) {
+                break;
+            }
 
-            if(input.equals("")){
-                //Le joueur garde toutes ces cartes
-                passe = true;
-            }else {
-                //Le joueur défausse une carte
-                defausser++;
-                int i=0;
-                boolean find = false;
-                while(i<destinationsPossibles.size() && find == false){
-                    if((String.join(" - ", destinationsPossibles.get(i).getVilles())).equals(input)){
-                        find = true;
-                        resultatCardToDefausser.add(destinationsPossibles.get(i));
-                        destinationsPossibles.remove(i);
-                    }
-                    i++;
+            // Défausser la destination choisie
+            for (Destination m : destinationsPossibles) {
+                if ((String.join(" - ",m.getVilles())).equals(choix)) {
+                    destinationsPossibles.remove(m);
+                    this.enleverDestination(m);
+                    defaussees.add(m);
+                    break;
                 }
             }
-
         }
-        ArrayList<Destination> copieRes = new ArrayList();
-        for(int i=0; i<resultatCardToDefausser.size(); i++){
-            copieRes.add(resultatCardToDefausser.get(i));
-        }
-
-        for (int i = 0; i < destinationsPossibles.size(); i++) {
-            this.destinations.add(i, destinationsPossibles.get(i));
-        }
-
-
-
-
-
-        return resultatCardToDefausser;
+        return defaussees;
     }
 
     public int choisirNombre(String instruction, int min, int max ) {
@@ -314,9 +307,7 @@ public class Joueur {
     }
 
     public void ajouterDestinationDansJoueur(List<Destination> destination){
-        for(int i=0; i<destination.size(); i++){
-            this.destinations.add(destination.get(i));
-        }
+        this.destinations.addAll(destination);
     }
 
     /**

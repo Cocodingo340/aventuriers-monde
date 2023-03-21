@@ -104,6 +104,19 @@ public class JeuProfTest {
     }
 
     @Test
+    void testPourVoir() {
+        jeu.setInput("", "10", "", "10", "", "10", "", "10");
+        try {
+            jeu.run();
+        } catch (IndexOutOfBoundsException ignored) {
+        }
+        // on vérifie que chaque joueur a 5 destinations
+        for (Joueur j : joueurs) {
+            assertEquals(5, TestUtils.getDestinations(j).size());
+        }
+    }
+
+    @Test
     void testDestinationsInitialesJoueursDefaussent() {
         List<String> instructions = new ArrayList<>();
         for (Joueur j : joueurs) {
