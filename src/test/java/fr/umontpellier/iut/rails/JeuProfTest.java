@@ -109,7 +109,7 @@ public class JeuProfTest {
         for (Joueur j : joueurs) {
             // le joueur défausse autant de destinations que possible
             for (int i = 1; i <= 65; i++) {
-                instructions.add("D" + i);
+                instructions.add("");
             }
             // le joueur prend 10 pions wagon
             instructions.add("10");

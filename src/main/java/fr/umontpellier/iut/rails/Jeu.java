@@ -118,6 +118,10 @@ public class Jeu implements Runnable {
         return joueurs;
     }
 
+    public List<Destination> getPileDestinations() {
+        return pileDestinations;
+    }
+
     public List<Ville> getPortsLibres() {
         return new ArrayList<>(portsLibres);
     }
@@ -141,6 +145,10 @@ public class Jeu implements Runnable {
 
 
     public void run() {
+        for (int i = 0; i < 3; i++) {
+            cartesTransportVisibles.add(piocherCarteWagon());
+            cartesTransportVisibles.add(piocherCarteBateau());
+        }
         for(int i=0; i<joueurs.size(); i++){
             this.joueurCourant = this.joueurs.get(i);
             List<CarteTransport> CarteTransportJoueur = new ArrayList<>();
@@ -151,43 +159,74 @@ public class Jeu implements Runnable {
                 joueurCourant.ajoutCarteTransport(piocherCarteBateau());
             }
 
-            ArrayList<Destination> destinations = this.getRandomDestinationCard(5);
-            List<Destination> aSupprimer = joueurCourant.choisirDestinations(destinations, 2);
-            int[] boatwagon=this.joueurCourant.choisirPions();
-            int nbBateau = boatwagon[0];
-            int nbWagon = boatwagon[1];
-            this.joueurCourant.setNbPionsBateauEnReserve(this.joueurCourant.getNbPionsBateauEnReserve() - nbBateau);
-            this.joueurCourant.setNbPionsWagonEnReserve(this.joueurCourant.getNbPionsWagonEnReserve() - nbWagon);
-            this.joueurCourant.setNbPionsBateau(nbBateau);
-            this.joueurCourant.setNbPionsWagon(nbWagon);
+            List<Destination> destinations = this.getRandomDestinationCard(5);
+            List<Destination> aSupprimer = this.joueurCourant.choisirDestinations(destinations, 2);
+            for(Destination d : aSupprimer){
+                pileDestinations.add(pileDestinations.size(),d);
+            }
+
+            int wagon=this.joueurCourant.choisirNombre("Veuillez choisir le nombre de pions wagon que vous voulez, entre 10 et 25",10,25);
+
+            this.joueurCourant.setNbPionsBateauEnReserve(this.joueurCourant.getNbPionsBateauEnReserve() - (60-wagon));
+            this.joueurCourant.setNbPionsWagonEnReserve(this.joueurCourant.getNbPionsWagonEnReserve() - wagon);
+            this.joueurCourant.setNbPionsBateau(60-wagon);
+            this.joueurCourant.setNbPionsWagon(wagon);
+
 
 
 
 
         }
-        // IMPORTANT : Le corps de cette fonction est à réécrire entièrement
-        // Un exemple très simple est donné pour illustrer l'utilisation de certaines méthodes
-        /*for (Joueur j : joueurs) {
-            joueurCourant = j;
-            j.jouerTour();
-        }*/
+
         boolean finPartie = false;
         int tourRestant = 2;
-        while (!finPartie && tourRestant!=0) {
-            for (Joueur j : joueurs) {
-                joueurCourant = j;
-                j.jouerTour();
-                if(j.getNbPionsBateau()+j.getNbPionsWagon()<=6){
-                    finPartie = true;
-                }
-
+        while (true) {
+            getJoueurCourant().jouerTour();
+            if (getJoueurCourant().getNbPionsBateau()+getJoueurCourant().getNbPionsWagon() <= 6) {
+                // un joueur a moins de 2 wagons restants à la fin de son tour
+                // -> plus qu'un tour de jeu
+                passeAuJoueurSuivant();
+                break;
             }
-            if(finPartie){
-                tourRestant--;
-            }
+            passeAuJoueurSuivant();
+        }
+        // Dernier tour de jeu
+        for (int i = 0; i < joueurs.size(); i++) {
+            getJoueurCourant().jouerTour();
+            passeAuJoueurSuivant();
         }
         // Fin de la partie
-        prompt("Fin de la partie. BRAVO", new ArrayList<>(), true);
+        prompt("Fin de la partie.", new ArrayList<>(), true);
+    }
+    public Destination piocherDestination() {
+        // throw new RuntimeException("Méthode non implémentée !");
+        Destination d = null;
+
+        if(pileDestinations.isEmpty()){
+            d = null;
+        }else {
+            d = pileDestinations.get(0);
+            this.pileDestinations.remove(0);
+        }
+
+        return d;
+    }
+
+    public void jouerTourPiocherDestination(){
+        List<Destination> resultat = new ArrayList<Destination>();
+
+        resultat.add(this.piocherDestination());
+        resultat.add(this.piocherDestination());
+        resultat.add(this.piocherDestination());
+        resultat.add(this.piocherDestination());
+
+        List<Destination> resultat2 = this.joueurCourant.choisirDestinations(resultat, 3);
+        this.joueurCourant.ajouterDestinationDansJoueur(resultat2);
+        for(Destination first : resultat){
+            if(!resultat2.contains(first)){
+                this.pileDestinations.add(first);
+            }
+        }
     }
 
 
@@ -215,6 +254,12 @@ public class Jeu implements Runnable {
 
     public boolean piocheWagonEstVide() {
         return pilesDeCartesWagon.estVide();
+    }
+
+    public void passeAuJoueurSuivant() {
+        int i = joueurs.indexOf(getJoueurCourant());
+        i = (i + 1) % joueurs.size();
+        joueurCourant=joueurs.get(i);
     }
 
     public ArrayList<Destination> getRandomDestinationCard(int numberCardToGet){
@@ -257,6 +302,12 @@ public class Jeu implements Runnable {
     public void addInput(String message) {
         inputQueue.add(message);
     }
+
+    public Joueur getJoueurCourant() {
+        return joueurCourant;
+    }
+
+
 
     /**
      * Lit une ligne de l'entrée standard

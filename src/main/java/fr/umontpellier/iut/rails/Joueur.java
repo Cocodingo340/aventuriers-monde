@@ -130,9 +130,9 @@ public class Joueur {
         // Un exemple très simple est donné pour illustrer l'utilisation de certaines méthodes
 
         List<Bouton> boutons = Arrays.asList(
-                new Bouton("Piocher des cartes transport"),
-                new Bouton("Echanger des pions wagons ou bateau"),
-                new Bouton("Prendre de nouvelles destinations"),
+                new Bouton("PIONS WAGON"),
+                new Bouton("PIONS BATEAU"),
+                new Bouton("DESTINATION"),
                 new Bouton("Capturer une route"),
                 new Bouton("Construire un port"));
 
@@ -142,36 +142,25 @@ public class Joueur {
                 boutons,
                 false);
 
-        if (choix.equals("Piocher des cartes transport")) {
+        if (choix.equals("PIONS WAGON")) {
+            int nbPionsEchanges=choisirNombre("Choissisez combien de Pions Wagons voulez-vous prendre",1,nbPionsBateauEnReserve);
+            nbPionsBateauEnReserve+=nbPionsEchanges;
+            nbPionsWagon+=nbPionsEchanges;
+            nbPionsWagonEnReserve-=nbPionsEchanges;
+            nbPionsBateau-=nbPionsEchanges;
+            score-=nbPionsEchanges;
         }
-        else if (choix.equals("Echanger des pions wagons ou bateau")) {
-            log(String.format("%s a choisi %s", toLog(), choix));
-            List<Bouton> choixPions = Arrays.asList(new Bouton("PIONS BATEAU"),new Bouton("PIONS WAGON"));
-            String choix1 = choisir(
-                    "Voulez-vous echanger des pions wagons ou des pions bateaux ? Cliquez sur \"PIONS WAGON\" pour prendre des pions wagon de la réserve, ou \"PIONS BATEAU\" pour prendre des pions bateau \");",
-                    null,
-                    choixPions,
-                    false);
-            if (choix1.equals("PIONS WAGON")) {
-                int nbPionsEchanges=choisirNombre("Choissisez combien de Pions Wagons voulez-vous échanger",1,nbPionsBateauEnReserve);
-                nbPionsWagonEnReserve-=nbPionsEchanges;
-                nbPionsBateau-=nbPionsEchanges;
-                nbPionsBateauEnReserve+=nbPionsEchanges;
-                nbPionsWagon+=nbPionsEchanges;
-
-            }
-            else if (choix1.equals("PIONS BATEAU")) {
-                int nbPionsEchanges=choisirNombre("Choissisez combien de Pions Bateau voulez-vous échanger",1,nbPionsWagonEnReserve);
-                nbPionsBateauEnReserve-=nbPionsEchanges;
-                nbPionsWagon-=nbPionsEchanges;
-                nbPionsWagonEnReserve+=nbPionsEchanges;
-                nbPionsBateau+=nbPionsEchanges;
-            }
-
+        else if (choix.equals("PIONS BATEAU")) {
+            int nbPionsEchanges=choisirNombre("Choissisez combien de Pions Bateau voulez-vous prendre",1,nbPionsWagonEnReserve);
+            nbPionsBateauEnReserve-=nbPionsEchanges;
+            nbPionsWagon-=nbPionsEchanges;
+            nbPionsWagonEnReserve+=nbPionsEchanges;
+            nbPionsBateau+=nbPionsEchanges;
+            score-=nbPionsEchanges;
 
         }
-        else if (choix.equals("Prendre de nouvelles destinations")) {
-            log(String.format("%s a choisi %s", toLog(), choix));
+        else if (choix.equals("DESTINATION")) {
+           jeu.jouerTourPiocherDestination();
         }
         else if (choix.equals("Capturer une route")) {
             log(String.format("%s a choisi %s", toLog(), choix));
@@ -252,6 +241,7 @@ public class Joueur {
         }
     }
 
+
     public List<Destination> choisirDestinations(List<Destination> destinationsPossibles, int n) {
         List<Destination> resultatCardToDefausser = new ArrayList<>();
         int defausser = 0;
@@ -259,7 +249,7 @@ public class Joueur {
         while(defausser < n && !passe){
             List<Bouton> boutons = new ArrayList<>();
             for(int j=0; j<destinationsPossibles.size(); j++){
-                boutons.add(new Bouton(destinationsPossibles.get(j).getNom()));
+                boutons.add(new Bouton(String.join(" - ", destinationsPossibles.get(j).getVilles())));
             }
 
             System.out.println(this.nom);
@@ -274,7 +264,7 @@ public class Joueur {
                 int i=0;
                 boolean find = false;
                 while(i<destinationsPossibles.size() && find == false){
-                    if(destinationsPossibles.get(i).getNom().equals(input)){
+                    if((String.join(" - ", destinationsPossibles.get(i).getVilles())).equals(input)){
                         find = true;
                         resultatCardToDefausser.add(destinationsPossibles.get(i));
                         destinationsPossibles.remove(i);
@@ -283,57 +273,27 @@ public class Joueur {
                 }
             }
 
-
         }
-
-        //Ajout des cartes destinations non défausser dans le jeu du joueur
         ArrayList<Destination> copieRes = new ArrayList();
         for(int i=0; i<resultatCardToDefausser.size(); i++){
             copieRes.add(resultatCardToDefausser.get(i));
         }
 
-        for(int i=0; i<destinationsPossibles.size(); i++){
-            this.destinations.add(destinationsPossibles.get(i));
+        for (int i = 0; i < destinationsPossibles.size(); i++) {
+            this.destinations.add(i, destinationsPossibles.get(i));
         }
+
+
 
 
 
         return resultatCardToDefausser;
     }
 
-    public int[] choisirPions(){
-        int nbBoat=0;int nbWagon=0;
-        boolean passe = false;
-        do {
-
-            jeu.prompt("Veuillez choisir le nombre de Bateaux que vous voulez piocher, au maximum 50", new ArrayList<>(), false);
-            String strBoat = jeu.lireLigne();
-
-            nbBoat = Integer.parseInt(strBoat);
-            while (nbBoat > 50) {
-                jeu.prompt("ERREUR : Veuillez rechoisir le nombre de Bateaux que vous voulez piocher, au maximum 50", new ArrayList<>(), false);
-                strBoat = jeu.lireLigne();
-                nbBoat = Integer.parseInt(strBoat);
-            }
-            jeu.prompt("Veuillez choisir maintenant le nombre de Wagons que vous voulez piocher, au maximum 25", new ArrayList<>(), false);
-            String strWagon = jeu.lireLigne();
-            nbWagon = Integer.parseInt(strWagon);
-            while (nbWagon > 25) {
-                jeu.prompt("ERREUR : Veuillez rechoisir le nombre de Wagons que vous voulez piocher, au maximum 25", new ArrayList<>(), false);
-                strWagon = jeu.lireLigne();
-                nbWagon = Integer.parseInt(strWagon);
-            }
-        }
-        while(nbBoat+nbWagon != 60);
-
-        return new int[]{nbBoat,nbWagon};
-
-    }
-
     public int choisirNombre(String instruction, int min, int max ) {
 
         while (true) {
-            jeu.prompt(instruction, null, true);
+            jeu.prompt(instruction, new ArrayList<>(), false);
             String entree = jeu.lireLigne();
 
             try {
@@ -351,6 +311,12 @@ public class Joueur {
 
     public void ajoutCarteTransport(CarteTransport carte){
         this.cartesTransport.add(carte);
+    }
+
+    public void ajouterDestinationDansJoueur(List<Destination> destination){
+        for(int i=0; i<destination.size(); i++){
+            this.destinations.add(destination.get(i));
+        }
     }
 
     /**
@@ -388,6 +354,8 @@ public class Joueur {
     public int calculerScoreFinal() {
         throw new RuntimeException("Méthode pas encore implémentée !");
     }
+
+
 
     /**
      * Renvoie une représentation du joueur sous la forme d'un dictionnaire de
