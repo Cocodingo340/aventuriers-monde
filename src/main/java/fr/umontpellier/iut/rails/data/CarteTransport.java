@@ -1,5 +1,9 @@
 package fr.umontpellier.iut.rails.data;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public final class CarteTransport implements Comparable<CarteTransport> {
 
     /**
@@ -77,6 +81,7 @@ public final class CarteTransport implements Comparable<CarteTransport> {
                 "<img class=\"couleur\" src=\"images/symbole-%s.png\"><span class=\"nom-carte %s %s\">%s</span>",
                 couleur.name(), type.name().toLowerCase(), couleur.name().toLowerCase(), label);
     }
+
 
     @Override
     public int compareTo(CarteTransport carte) {

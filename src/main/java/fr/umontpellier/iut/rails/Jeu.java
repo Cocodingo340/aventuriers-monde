@@ -145,25 +145,20 @@ public class Jeu implements Runnable {
 
 
     public void run() {
-        for (int i = 0; i < 3; i++) {
-            cartesTransportVisibles.add(piocherCarteWagon());
-            cartesTransportVisibles.add(piocherCarteBateau());
-        }
-        for(int i=0; i<joueurs.size(); i++){
-            this.joueurCourant = this.joueurs.get(i);
-            List<CarteTransport> CarteTransportJoueur = new ArrayList<>();
-            for (int j = 0; j < 2; j++) {
-                this.joueurCourant.ajoutCarteTransport(piocherCarteWagon());
-            }
-            for (int j = 0; j < 6; j++) {
-                this.joueurCourant.ajoutCarteTransport(piocherCarteBateau());
-            }
+        int tour = 0;
+        boolean finPartie=false;
 
-            List<Destination> destinations = this.getRandomDestinationCard(5);
-            List<Destination> aSupprimer = this.joueurCourant.choisirDestinations(destinations, 3);
-            for(Destination d : aSupprimer){
-                this.pileDestinations.add(pileDestinations.size(),d);
+        //PREMIER TOUR
+        distributionDebut();
+
+        for(int i=0; i<joueurs.size(); i++){
+
+            List<Destination> premieresDestinations = new ArrayList<>();
+            for (int j = 0; j < 5; j++) {
+                premieresDestinations.add(pileDestinations.remove(0));
             }
+            joueurCourant.choisirDestinations(premieresDestinations,3);
+
 
             int wagon=this.joueurCourant.choisirNombre("Veuillez choisir le nombre de pions wagon que vous voulez, entre 10 et 25",10,25);
 
@@ -172,28 +167,30 @@ public class Jeu implements Runnable {
             this.joueurCourant.setNbPionsBateau(60-wagon);
             this.joueurCourant.setNbPionsWagon(wagon);
 
+            tour++;
 
-
-
-
+            joueurCourant = joueurs.get(tour%joueurs.size());
         }
 
-        boolean finPartie = false;
-        int tourRestant = 2;
-        while (finPartie==false && tourRestant>0) {
-            if(finPartie){
-                tourRestant--;
-            }
-            for (int i = 0; i < joueurs.size(); i++) {
-                if(joueurCourant.getNbPionsWagon()+joueurCourant.getNbPionsWagon()<=6){
-                    finPartie=true;
-                }
-                joueurCourant=joueurs.get(i);
-                joueurCourant.jouerTour();
-            }
+        //TOURS NORMAUX
 
+        while (!finPartie) { // Tant que la partie est pas finie
+            joueurCourant.jouerTour();
+            tour++;
+            if(joueurCourant.getNbPionsWagon()+joueurCourant.getNbPionsBateau() <= 6){
+                finPartie = true;
+            }
+            joueurCourant = joueurs.get(tour%joueurs.size());
         }
-        // Fin de la partie
+
+        //DERNIERS TOURS
+
+        for(int k=0; k<(joueurs.size()*2); k++){
+            joueurCourant.jouerTour();
+            tour++;
+            joueurCourant = joueurs.get(tour%joueurs.size());
+        }
+        // FIN PARTIE
         prompt("Fin de la partie.", new ArrayList<>(), true);
     }
     public Destination piocherDestination() {
@@ -208,6 +205,22 @@ public class Jeu implements Runnable {
         }
 
         return d;
+    }
+
+    public void distributionDebut(){
+        for (int i = 0; i < 3; i++) {
+            cartesTransportVisibles.add(piocherCarteWagon());
+            cartesTransportVisibles.add(piocherCarteBateau());
+        }
+        for(int i=0; i<joueurs.size(); i++) {
+            for (int j = 0; j < 2; j++) {
+                this.joueurCourant.ajoutCarteTransport(piocherCarteWagon());
+            }
+            for (int j = 0; j < 6; j++) {
+                this.joueurCourant.ajoutCarteTransport(piocherCarteBateau());
+            }
+        }
+
     }
 
     public void jouerTourPiocherDestination(){
