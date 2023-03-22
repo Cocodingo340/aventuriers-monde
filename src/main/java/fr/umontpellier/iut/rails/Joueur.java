@@ -257,11 +257,11 @@ public class Joueur {
         while (choix == null || !choix.equals("") && destinationsPossibles.size() > n) {
             List<Bouton> choixDestination = new ArrayList<>();
             for (Destination destination : destinationsPossibles) {
-                choixDestination.add(new Bouton(String.join(" - ",destination.getVilles())));
+                choixDestination.add(new Bouton(destination.getNom()));
             }
             choix = choisir("Quelles destinations voulez-vous enlever (2 max) ?", new ArrayList<>(), choixDestination, true);
             for (Destination destination : destinationsPossibles) {
-                if (String.join(" - ",destination.getVilles()).equals(choix)) {
+                if (destination.getNom().equals(choix)) {
                     destinationsPossibles.remove(destination);
                     destinationsNonChoisies.add(destination);
                     break;
@@ -269,6 +269,8 @@ public class Joueur {
             }
         }
         this.destinations.addAll(destinationsPossibles);
+
+
         return destinationsNonChoisies;
     }
 
@@ -339,10 +341,10 @@ public class Joueur {
         List<Couleur> ListeCouleur = new ArrayList<Couleur>(EnumSet.allOf(Couleur.class));
         boolean peut=true;
         if(!ville.estPort()){
-            peut=false;
+            return false;
         }
 
-        ArrayList<CarteTransport> cartesAvecEncres = new ArrayList<>()
+        ArrayList<CarteTransport> cartesAvecEncres = new ArrayList<>();
         for (int i = 0; i < this.cartesTransport.size(); i++) {
             if (this.cartesTransport.get(i).getAncre() || this.cartesTransport.get(i).getType() == TypeCarteTransport.JOKER ){
                 cartesAvecEncres.add(this.cartesTransport.get(i));
@@ -351,14 +353,32 @@ public class Joueur {
 
         for (int i=0; i < ListeCouleur.size(); i++) {
             if(nombreCouleurWagonJoueur(cartesAvecEncres,ListeCouleur.get(i))+nombreCouleurBateauJoueur(cartesAvecEncres,ListeCouleur.get(i))+nombreJoker(cartesAvecEncres)<4){
-                peut=false;
+                return false;
             }
 
         }
 
+        for (Route route: routes) {
+            if(route.getVille1().equals(ville) || route.getVille2().equals(ville)){
+                return true;
+            }
+        }
+
+        return false;
+
         //ça serait un truc du genre si la ville ou va sa situer le port a une route qui est possédé par un joueur, alors il peut
+    }
 
-
+    public void prendrePort(Ville ville){
+        if(peutPoserPort(ville)){
+            ArrayList<CarteTransport> cartesPosables = new ArrayList<>();
+            for (int i = 0; i < this.cartesTransport.size(); i++) {
+                if (this.cartesTransport.get(i).getAncre() || this.cartesTransport.get(i).getType() == TypeCarteTransport.JOKER ){
+                    cartesPosables.add(this.cartesTransport.get(i));
+                }
+            }
+            this.ports.add(ville);
+        }
     }
 
     public List<CarteTransport> getCartesTransport() {

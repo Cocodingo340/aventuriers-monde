@@ -148,10 +148,22 @@ public class Jeu implements Runnable {
         int tour = 0;
         boolean finPartie=false;
 
+        for (int j = 0; j < 3; j++) {
+            cartesTransportVisibles.add(piocherCarteWagon());
+            cartesTransportVisibles.add(piocherCarteBateau());
+        }
+
         //PREMIER TOUR
-        distributionDebut();
 
         for(int i=0; i<joueurs.size(); i++){
+
+            for (int j = 0; j < 3; j++) {
+                    this.joueurCourant.ajoutCarteTransport(piocherCarteWagon());
+            }
+            for (int j = 0; j < 7; j++) {
+                    this.joueurCourant.ajoutCarteTransport(piocherCarteBateau());
+            }
+
 
             List<Destination> premieresDestinations = new ArrayList<>();
             for (int j = 0; j < 5; j++) {
@@ -208,18 +220,7 @@ public class Jeu implements Runnable {
     }
 
     public void distributionDebut(){
-        for (int i = 0; i < 3; i++) {
-            cartesTransportVisibles.add(piocherCarteWagon());
-            cartesTransportVisibles.add(piocherCarteBateau());
-        }
-        for(int i=0; i<joueurs.size(); i++) {
-            for (int j = 0; j < 2; j++) {
-                this.joueurCourant.ajoutCarteTransport(piocherCarteWagon());
-            }
-            for (int j = 0; j < 6; j++) {
-                this.joueurCourant.ajoutCarteTransport(piocherCarteBateau());
-            }
-        }
+
 
     }
 
@@ -231,12 +232,10 @@ public class Jeu implements Runnable {
         resultat.add(this.piocherDestination());
         resultat.add(this.piocherDestination());
 
-        List<Destination> resultat2 = this.joueurCourant.choisirDestinations(resultat, 3);
-        this.joueurCourant.ajouterDestinationDansJoueur(resultat2);
-        for(Destination first : resultat){
-            if(!resultat2.contains(first)){
-                this.pileDestinations.add(first);
-            }
+        List<Destination> resultat2 = this.joueurCourant.choisirDestinations(resultat, 1);
+
+        for(Destination first : resultat2){
+            this.pileDestinations.add(first);
         }
     }
 
