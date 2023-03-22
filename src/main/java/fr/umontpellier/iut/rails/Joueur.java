@@ -170,7 +170,7 @@ public class Joueur {
         else if (choix.equals("DESTINATION")) {
            jeu.jouerTourPiocherDestination();
         }
-        else if (choix.equals("Capturer une route")) {
+        else if (choix.equals("UN NOM DE VILLE")) {
             log(String.format("%s a choisi %s", toLog(), choix));
         }
         else if (choix.equals("Construire un port")) {
@@ -366,7 +366,6 @@ public class Joueur {
 
         return false;
 
-        //ça serait un truc du genre si la ville ou va sa situer le port a une route qui est possédé par un joueur, alors il peut
     }
 
     public void prendrePort(Ville ville){
