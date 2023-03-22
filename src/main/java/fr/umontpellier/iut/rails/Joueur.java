@@ -137,17 +137,21 @@ public class Joueur {
         // IMPORTANT : Le corps de cette fonction est à réécrire entièrement
         // Un exemple très simple est donné pour illustrer l'utilisation de certaines méthodes
 
-        List<Bouton> boutons = Arrays.asList(
-                new Bouton("PIONS WAGON"),
-                new Bouton("PIONS BATEAU"),
-                new Bouton("DESTINATION"),
-                new Bouton("Capturer une route"),
-                new Bouton("Construire un port"));
+
+        List<String> choixPossibles=new ArrayList<>();
+        List<String> villesPortsLibres=new ArrayList<>();
+        for (Ville v: jeu.getPortsLibres()) {
+            villesPortsLibres.add(v.nom());
+        }
+        choixPossibles.addAll(villesPortsLibres);
+        choixPossibles.add("PIONS WAGON");choixPossibles.add("DESTINATION");choixPossibles.add("PIONS BATEAU");
+
+
 
         String choix = choisir(
                 "Veuillez choisir une option a effectuer ce tour :\n",
+                choixPossibles,
                 null,
-                boutons,
                 false);
 
         if (choix.equals("PIONS WAGON")) {
@@ -173,8 +177,10 @@ public class Joueur {
         else if (choix.equals("UN NOM DE VILLE")) {
             log(String.format("%s a choisi %s", toLog(), choix));
         }
-        else if (choix.equals("Construire un port")) {
-            log(String.format("%s a choisi %s", toLog(), choix));
+
+        //Faut reussir des que le joueur va cliquer sur une ville avec un port libre, bah ça va prendre le port libre en question
+        else if (villesPortsLibres.contains(choix)) {
+            prendrePort(jeu.getPortsLibres().get(villesPortsLibres.indexOf(choix)));
         }
 
     }
@@ -338,43 +344,111 @@ public class Joueur {
     }
 
     public boolean peutPoserPort(Ville ville){
-        List<Couleur> ListeCouleur = new ArrayList<Couleur>(EnumSet.allOf(Couleur.class));
-        boolean peut=true;
-        if(!ville.estPort()){
-            return false;
+        if(ville.estPort() && possedeRouteVille(ville) && peutPayerPort(this.cartesTransport)){
+            return true;
         }
+        return false;
+    }
 
-        ArrayList<CarteTransport> cartesAvecEncres = new ArrayList<>();
-        for (int i = 0; i < this.cartesTransport.size(); i++) {
-            if (this.cartesTransport.get(i).getAncre() || this.cartesTransport.get(i).getType() == TypeCarteTransport.JOKER ){
-                cartesAvecEncres.add(this.cartesTransport.get(i));
-            }
-        }
-
-        for (int i=0; i < ListeCouleur.size(); i++) {
-            if(nombreCouleurWagonJoueur(cartesAvecEncres,ListeCouleur.get(i))+nombreCouleurBateauJoueur(cartesAvecEncres,ListeCouleur.get(i))+nombreJoker(cartesAvecEncres)<4){
-                return false;
-            }
-
-        }
-
-        for (Route route: routes) {
-            if(route.getVille1().equals(ville) || route.getVille2().equals(ville)){
+    public boolean possedeRouteVille(Ville ville){
+        for (Route r: this.routes) {
+            if(r.getVille1().equals(ville) || r.getVille2().equals(ville)){
                 return true;
             }
         }
-
         return false;
+    }
 
+    public boolean peutPayerPort(List<CarteTransport> liste){
+        List<Couleur> ListeCouleur = new ArrayList<Couleur>(EnumSet.allOf(Couleur.class));
+        for (Couleur c: ListeCouleur) {
+            if(nombreCouleurWagonJoueur(liste,c)+nombreCouleurBateauJoueur(liste,c)+nombreJoker(liste)>=4){
+                log("Vous avez assez de carte pour payer le port");
+
+                return true;
+            }
+        }
+        log("Vous n'avez pas assez de carte pour payer le port");
+        return false;
+    }
+
+    //ON SUPPOSE QUE LE JOUEUR EST SUR DE PAYER LE PORT
+    public Couleur peutPayerPortAvecQuelleCouleur(List<CarteTransport> liste){
+        List<Couleur> ListeCouleur = new ArrayList<Couleur>(EnumSet.allOf(Couleur.class));
+        Couleur bonneCoul=null;
+        for (Couleur c: ListeCouleur) {
+            if(nombreCouleurWagonJoueur(liste,c)+nombreCouleurBateauJoueur(liste,c)+nombreJoker(liste)>=4){
+                bonneCoul=c;
+            }
+        }
+        return bonneCoul;
     }
 
     public void prendrePort(Ville ville){
         if(peutPoserPort(ville)){
-            ArrayList<CarteTransport> cartesPosables = new ArrayList<>();
-            for (int i = 0; i < this.cartesTransport.size(); i++) {
-                if (this.cartesTransport.get(i).getAncre() || this.cartesTransport.get(i).getType() == TypeCarteTransport.JOKER ){
-                    cartesPosables.add(this.cartesTransport.get(i));
+            cartesTransport.remove(0);
+            Couleur couleur = peutPayerPortAvecQuelleCouleur(this.cartesTransport);
+            int nbCarteWagonImmuable = nombreCouleurWagonJoueur(this.cartesTransport,couleur);
+            int nbCarteBateauImmuable = nombreCouleurBateauJoueur(this.cartesTransport,couleur);
+            List<CarteTransport>carteTransportWagon = recupereCarteWagonDeCouleur(this.cartesTransport,couleur);
+            List<CarteTransport>carteTransportBateau = recupererCarteBateauDeCouleur(this.cartesTransport,couleur);
+            List<CarteTransport>carteTransportJoker = recupererCarteJoker(this.cartesTransport);
+            List<CarteTransport>toutesLesCartesTransport = new ArrayList<>();
+            toutesLesCartesTransport.addAll(carteTransportWagon);
+            toutesLesCartesTransport.addAll(carteTransportBateau);
+            toutesLesCartesTransport.addAll(carteTransportJoker);
+            List<String> toutesLesCartes = new ArrayList<>();
+            toutesLesCartes.addAll(recupererNomCartesTransport(carteTransportWagon));
+            toutesLesCartes.addAll(recupererNomCartesTransport(carteTransportBateau));
+            toutesLesCartes.addAll(recupererNomCartesTransport(carteTransportJoker));
+
+            int nbCarteAPayer = 4;
+            int nbCarteWagonAPayer=2;
+            int nbCarteBateauAPayer=2;
+            while (nbCarteAPayer>0){
+                String choix = choisir(
+                        "Choissisez une carte à payer",
+                        toutesLesCartes,
+                        null,
+                        false);
+                for (CarteTransport c : toutesLesCartesTransport ) {
+                    if (c.getNom().equals(choix)) {
+                        if(c.getType().equals(TypeCarteTransport.WAGON)){
+                            nbCarteWagonAPayer--;
+                            nbCarteAPayer--;
+                            toutesLesCartesTransport.remove(c);
+                            toutesLesCartes.remove(c.getNom());
+                            this.cartesTransport.remove(c);
+
+
+                        }
+                        if(c.getType().equals(TypeCarteTransport.BATEAU)){
+                            nbCarteBateauAPayer--;
+                            nbCarteAPayer--;
+                            toutesLesCartesTransport.remove(c);
+                            toutesLesCartes.remove(c.getNom());
+                            this.cartesTransport.remove(c);
+                        }
+                        if(c.getType().equals(TypeCarteTransport.JOKER)){
+                            if(nbCarteBateauImmuable<2){
+                                nbCarteBateauAPayer--;
+                                nbCarteAPayer--;
+                                toutesLesCartesTransport.remove(c);
+                                toutesLesCartes.remove(c.getNom());
+                                this.cartesTransport.remove(c);
+                            }
+                            else if (nbCarteWagonImmuable<2) {
+                                nbCarteWagonAPayer--;
+                                nbCarteAPayer--;
+                                toutesLesCartesTransport.remove(c);
+                                toutesLesCartes.remove(c.getNom());
+                                this.cartesTransport.remove(c);
+                            }
+                        }
+
+                    }
                 }
+
             }
             this.ports.add(ville);
         }
@@ -384,34 +458,93 @@ public class Joueur {
         return cartesTransport;
     }
 
+    public List<String> recupererNomCartesTransport(List<CarteTransport> cartesTransport){
+        List<String> nomCartes = new ArrayList<>();
+        for (CarteTransport c: cartesTransport) {
+            nomCartes.add(c.toString());
+        }
+        return nomCartes;
+    }
+    
+    public List<Couleur> listeCouleur(){
+        List<Couleur> couleurs = new ArrayList<>();
+        for (Couleur couleur : Couleur.values()) {
+            couleurs.add(couleur);
+        }
+        return couleurs;
+    }
+
     public int nombreCouleurWagonJoueur(List<CarteTransport> cartesTransport,Couleur couleur){
+
         List<CarteTransport> listeCartesWagon = new ArrayList<>();
-        for(int i=0; i<this.cartesTransport.size(); i++){
-            if(cartesTransport.get(i).getType().equals(TypeCarteTransport.WAGON)){
-                listeCartesWagon.add(cartesTransport.get(i));
+        for (CarteTransport c: cartesTransport) {
+            if(c.getType().equals(TypeCarteTransport.WAGON)){
+                listeCartesWagon.add(c);
             }
         }
         return Collections.frequency(listeCartesWagon, couleur);
     }
 
+    public List<CarteTransport> recupereCarteWagonDeCouleur(List<CarteTransport> cartesTransport,Couleur couleur){
+        List<CarteTransport> listeCartesWagon = new ArrayList<>();
+        for (CarteTransport c: cartesTransport) {
+            if(c.getType().equals(TypeCarteTransport.WAGON)){
+                listeCartesWagon.add(c);
+            }
+        }
+        List<CarteTransport> listeCartesWagonCouleur = new ArrayList<>();
+        for (CarteTransport c: listeCartesWagon) {
+            if(c.getCouleur().equals(couleur)){
+                listeCartesWagonCouleur.add(c);
+            }
+        }
+        return listeCartesWagonCouleur;
+    }
+
     public int nombreCouleurBateauJoueur(List<CarteTransport> cartesTransport,Couleur couleur){
         List<CarteTransport> listeCartesBateau = new ArrayList<>();
-        for(int i=0; i<this.cartesTransport.size(); i++){
-            if(cartesTransport.get(i).getType().equals(TypeCarteTransport.BATEAU)){
-                listeCartesBateau.add(cartesTransport.get(i));
+        for (CarteTransport c: cartesTransport) {
+            if(c.getType().equals(TypeCarteTransport.BATEAU)){
+                listeCartesBateau.add(c);
             }
         }
         return Collections.frequency(listeCartesBateau, couleur);
     }
 
-    public int nombreJoker(List<CarteTransport> cartesTransport){
-        List<CarteTransport> listeCartesJoker = new ArrayList<>();
-        for(int i=0; i<this.cartesTransport.size(); i++){
-            if(cartesTransport.get(i).getType().equals(TypeCarteTransport.JOKER)){
-                listeCartesJoker.add(cartesTransport.get(i));
+    public List<CarteTransport> recupererCarteBateauDeCouleur(List<CarteTransport> cartesTransport,Couleur couleur){
+        List<CarteTransport> listeCartesBateau = new ArrayList<>();
+        for (CarteTransport c: cartesTransport) {
+            if(c.getType().equals(TypeCarteTransport.BATEAU)){
+                listeCartesBateau.add(c);
             }
         }
-        return listeCartesJoker.size();
+        List<CarteTransport> listeCartesBateauCouleur = new ArrayList<>();
+        for (CarteTransport c: listeCartesBateau) {
+            if(c.getCouleur().equals(couleur)){
+                listeCartesBateauCouleur.add(c);
+            }
+        }
+        return listeCartesBateauCouleur;
+    }
+
+    public int nombreJoker(List<CarteTransport> cartesTransport){
+        List<CarteTransport> listeCartesJoker = new ArrayList<>();
+        for (CarteTransport c: cartesTransport) {
+            if(c.getType().equals(TypeCarteTransport.JOKER)){
+                listeCartesJoker.add(c);
+            }
+        }
+        return listeCartesJoker.size(); //on renvoie le nombre de joker
+    }
+
+    public List<CarteTransport> recupererCarteJoker(List<CarteTransport> cartesTransport){
+        List<CarteTransport> listeCartesJoker = new ArrayList<>();
+        for (CarteTransport c: cartesTransport) {
+            if(c.getType().equals(TypeCarteTransport.JOKER)){
+                listeCartesJoker.add(c);
+            }
+        }
+        return listeCartesJoker;
     }
 
 
