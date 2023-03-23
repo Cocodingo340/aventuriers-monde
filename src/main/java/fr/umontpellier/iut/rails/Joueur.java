@@ -372,21 +372,34 @@ public class Joueur {
     }
 
     public int calculerScoreFinal() {
-        int cpt= 0;
-        int change=2;
-        int score1= 0;
-        int score2=0 ;
-        boolean verif= true;
-        while (verif){
-            if (this.nbPionsBateau== this.nbPionsBateauEnReserve || this.nbPionsWagon== this.nbPionsWagonEnReserve || this.nbPionsWagon== this.nbPionsBateauEnReserve || this.nbPionsBateau== this.nbPionsWagonEnReserve){
-                cpt++;
-                score1= this.nbPionsBateau- change;
-                score2= this.nbPionsWagon- change;
+        int lg= Joueur.this.routes.size();
+        if (lg==1){
+            return this.score= score +1;
         }
-
+        else if (lg==2) {
+            return this.score= score +2;
         }
-        return score;
+        else if (lg==3) {
+            return this.score= score +4;
+        }
+        else if (lg==4) {
+            return this.score= score +7;
+        }
+        else if (lg==5) {
+            return this.score= score +10;
+        }
+        else if (lg==6) {
+            return this.score= score +15;
+        }
+        else if (lg==7) {
+            return this.score= score +18;
+        }
+        else if (lg==8) {
+            return this.score= score +21;
+        }
+        return this.score;
     }
+
 
 
 
