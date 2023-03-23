@@ -142,14 +142,20 @@ public class Joueur {
         List<String> choixVilles=new ArrayList<>();
         List<String> choixCartesVisibles=new ArrayList<>();
         List<String> choixRoutes=new ArrayList<>();
+
+        //TOUTES LES VILLES
         for (Ville v: jeu.getPortsLibres()) {
             choixPossibles.add(v.nom());
             choixVilles.add(v.nom());
         }
+
+        //TOUTES LES CARTES TRANSPORT VISIBLES
         for (CarteTransport c: jeu.getCartesTransportVisibles()) {
             choixPossibles.add(c.getNom());
-            choixVilles.add(c.getNom());
+            choixCartesVisibles.add(c.getNom());
         }
+
+        //TOUTES LES ROUTES LIBRES
         for (Route r: jeu.getRoutesLibres()) {
             choixPossibles.add(r.getNom());
             choixRoutes.add(r.getNom());
@@ -197,6 +203,13 @@ public class Joueur {
         }
         else if (choix.equals("WAGON")) {
             piocherCarteWagonDabord();
+        }
+        else if (choixCartesVisibles.contains(choix)){
+            for (CarteTransport a: jeu.getCartesTransportVisibles()) {
+                if (a.getNom().equals(choix)) {
+                    piocherCarteVisibleDabord(a);
+                }
+            }
         }
 
 
@@ -422,123 +435,112 @@ public class Joueur {
 
 
     public void piocherCarteWagonDabord(){
-        List<String> choixPossibles = new ArrayList<>();
-        choixPossibles.add("WAGON");choixPossibles.add("BATEAU");
         this.cartesTransport.add(jeu.piocherCarteWagon());
-        for (CarteTransport c: jeu.getCartesTransportVisibles()) {
-            if(!c.getType().equals(TypeCarteTransport.JOKER)){
-                choixPossibles.add(c.getNom());
-            }
-        }
-        List<String> BateauOuWagon= new ArrayList<>();
-        BateauOuWagon.add("WAGON");BateauOuWagon.add("BATEAU");
-
-        String choix = choisir("Quelle autre carte voulez-vous piocher ?", choixPossibles, null, true);
-        if(choix.equals("BATEAU")){
-            this.cartesTransport.add(jeu.piocherCarteBateau());
-        }
-        if(choix.equals("WAGON")){
-            this.cartesTransport.add(jeu.piocherCarteWagon());
-        }
-        if (choixPossibles.contains(choix)){
-            for (CarteTransport c: jeu.getCartesTransportVisibles()) {
-                if(c.getNom().equals(choix)){
-                    jeu.piocherCarteVisible(c);
-                    String choixRemplacement = choisir("Par quelle carte voulez vous remplacer la carte manquante  ?", BateauOuWagon, null, false);
-                    if(choixRemplacement.equals("BATEAU")){
-                        jeu.remplacerCarteVisible(choixRemplacement);
-                    }
-                    if(choixRemplacement.equals("WAGON")){
-                        jeu.remplacerCarteVisible(choixRemplacement);
-                    }
-                    break;
-                }
-            }
-        }
-
+        piocherDeuxiemeChoix(false);
     }
 
-
-
     public void piocherCarteBateauDAbord() {
-
-        List<String> choixPossibles = new ArrayList<>();
-        choixPossibles.add("WAGON");choixPossibles.add("BATEAU");
         this.cartesTransport.add(jeu.piocherCarteBateau());
-        for (CarteTransport c: jeu.getCartesTransportVisibles()) {
-            if(!c.getType().equals(TypeCarteTransport.JOKER)){
-                choixPossibles.add(c.getNom());
-            }
-        }
-        List<String> BateauOuWagon= new ArrayList<>();
-        BateauOuWagon.add("WAGON");BateauOuWagon.add("BATEAU");
-        String choix = choisir("Quelle autre carte voulez-vous piocher ?", choixPossibles, null, true);
-        if(choix.equals("BATEAU")){
-            this.cartesTransport.add(jeu.piocherCarteBateau());
-        }
-        if(choix.equals("WAGON")){
-            this.cartesTransport.add(jeu.piocherCarteWagon());
-        }
-        if (choixPossibles.contains(choix)){
-            for (CarteTransport c: jeu.getCartesTransportVisibles()) {
-                if(c.getNom().equals(choix)){
-                    this.cartesTransport.add(c);
-                    jeu.getCartesTransportVisibles().remove(c);
-                    String choixRemplacement = choisir("Par quelle carte voulez vous remplacer la carte manquante  ?", BateauOuWagon, null, false);
-                    if(choixRemplacement.equals("BATEAU")){
-                        jeu.getCartesTransportVisibles().add(jeu.piocherCarteBateau());
-                    }
-                    if(choixRemplacement.equals("WAGON")){
-                        jeu.getCartesTransportVisibles().add(jeu.piocherCarteWagon());
-                    }
-                    break;
-                }
-            }
-        }
-
+        piocherDeuxiemeChoix(false);
     }
 
     public void piocherCarteVisibleDabord(CarteTransport carteChosi){
-        if(carteChosi.getType().equals(TypeCarteTransport.JOKER)){
-            this.cartesTransport.add(carteChosi);
-            return;
-        }
+
         this.cartesTransport.add(carteChosi);
 
-
-        List<String> choixPossibles = new ArrayList<>();
-        choixPossibles.add("WAGON");choixPossibles.add("BATEAU");
-        for (CarteTransport c: jeu.getCartesTransportVisibles()) {
-            choixPossibles.add(c.getNom());
+        if(carteChosi.getType().equals(TypeCarteTransport.JOKER)){
+            jeu.enleverCarteVisible(carteChosi);
+            remplacerCarte();
         }
+        else{
+            jeu.enleverCarteVisible(carteChosi);
+            remplacerCarte();
+            piocherDeuxiemeChoix(false);
 
-        List<String> BateauOuWagon= new ArrayList<>();
-        BateauOuWagon.add("WAGON");BateauOuWagon.add("BATEAU");
+        }
+    }
 
-        String choix = choisir("Quelle carte voulez-vous piocher ?", choixPossibles, null, true);
-        if(choix.equals("BATEAU")){
-            this.cartesTransport.add(jeu.piocherCarteBateau());
-        }
-        if(choix.equals("WAGON")){
-            this.cartesTransport.add(jeu.piocherCarteWagon());
-        }
-        if (choixPossibles.contains(choix)){
-            for (CarteTransport c: jeu.getCartesTransportVisibles()) {
-                if(c.getNom().equals(choix)){
-                    this.cartesTransport.add(c);
-                    jeu.getCartesTransportVisibles().remove(c);
-                    String choixRemplacement = choisir("Par quelle carte voulez vous remplacer la carte manquante  ?", BateauOuWagon, null, false);
-                    if(choixRemplacement.equals("BATEAU")){
-                        jeu.getCartesTransportVisibles().add(jeu.piocherCarteBateau());
+    public void piocherDeuxiemeChoix(boolean aDejaPiocherJoker){
+        if(aDejaPiocherJoker) {
+            List<String> choixPossibles = new ArrayList<>();
+            List<String> BateauOuWagon = new ArrayList<>();
+            choixPossibles.add("WAGON"); BateauOuWagon.add("WAGON");
+            choixPossibles.add("BATEAU"); BateauOuWagon.add("BATEAU");
+            for (CarteTransport c : jeu.getCartesTransportVisibles()) {
+                choixPossibles.add(c.getNom());
+            }
+
+            String choix = choisir("Quelle autre carte voulez-vous piocher ?", choixPossibles, null, true);
+            if (choix.equals("BATEAU")) {
+                this.cartesTransport.add(jeu.piocherCarteBateau());
+            }
+            if (choix.equals("WAGON")) {
+                this.cartesTransport.add(jeu.piocherCarteWagon());
+            }
+            else {
+                for (CarteTransport c: jeu.getCartesTransportVisibles()) {
+                    if (c.getNom().equals(choix)) {
+                        this.cartesTransport.add(c);
+                        jeu.enleverCarteVisible(c);
+                        remplacerCarte();
+                        break;
                     }
-                    if(choixRemplacement.equals("WAGON")){
-                        jeu.getCartesTransportVisibles().add(jeu.piocherCarteWagon());
-                    }
-                    break;
                 }
+
+            }
+        }
+        else{
+            List<String> choixPossibles = new ArrayList<>();
+            List<String> BateauOuWagon = new ArrayList<>();
+            choixPossibles.add("WAGON"); BateauOuWagon.add("WAGON");
+            choixPossibles.add("BATEAU"); BateauOuWagon.add("BATEAU");
+            for (CarteTransport c : jeu.getCartesTransportVisibles()) {
+                if (!c.getType().equals(TypeCarteTransport.JOKER)) {
+                    choixPossibles.add(c.getNom());
+                }
+            }
+            String choix = choisir("Quelle autre carte voulez-vous piocher ?", choixPossibles, null, true);
+            if (choix.equals("BATEAU")) {
+                this.cartesTransport.add(jeu.piocherCarteBateau());
+            }
+            if (choix.equals("WAGON")) {
+                this.cartesTransport.add(jeu.piocherCarteWagon());
+            }
+            else {
+                for (CarteTransport c: jeu.getCartesTransportVisibles()) {
+                    if (c.getNom().equals(choix)) {
+                        this.cartesTransport.add(c);
+                        jeu.enleverCarteVisible(c);
+                        remplacerCarte();
+                        break;
+                    }
+                }
+
             }
         }
     }
+
+    public void remplacerCarte(){
+        List<String> BateauOuWagon = new ArrayList<>();
+        if(!jeu.piocheBateauEstVide()){
+            BateauOuWagon.add("BATEAU");
+        }
+        if(!jeu.piocheWagonEstVide()){
+            BateauOuWagon.add("WAGON");
+        }
+        if(BateauOuWagon.isEmpty()){
+            return;
+        }
+
+        String choixRemplacement = choisir("Par quelle carte voulez vous remplacer la carte manquante  ?", BateauOuWagon, null, false);
+        if (choixRemplacement.equals("BATEAU")) {
+            jeu.remplacerCarteVisible(choixRemplacement);
+        } else {
+            jeu.remplacerCarteVisible(choixRemplacement);
+        }
+    }
+
+
 
     public boolean peutPayerPort(List<CarteTransport> liste){
         List<Couleur> ListeCouleur = new ArrayList<Couleur>(EnumSet.allOf(Couleur.class));

@@ -312,6 +312,18 @@ public class Jeu implements Runnable {
         return pilesDeCartesBateau.estVide();
     }
 
+    public void defausserCarteBateau(CarteTransport carte){
+        this.pilesDeCartesBateau.defausser(carte);
+    }
+
+    public void defausserCarteWagon(CarteTransport carte){
+        this.pilesDeCartesWagon.defausser(carte);
+    }
+
+    public void enleverCarteVisible(CarteTransport carte){
+        this.cartesTransportVisibles.remove(carte);
+    }
+
     /**
      * Ajoute un message au log du jeu
      */
@@ -401,4 +413,16 @@ public class Jeu implements Runnable {
         }
         return null;
     }
+
+    public void enleverCarteTransport(CarteTransport carteTransportX) {
+        if(carteTransportX.getType().equals(TypeCarteTransport.BATEAU)){
+            this.cartesTransportVisibles.remove(carteTransportX);
+            this.pilesDeCartesBateau.defausser(carteTransportX);
+        }
+        else if (carteTransportX.getType().equals(TypeCarteTransport.WAGON)){
+            this.cartesTransportVisibles.remove(carteTransportX);
+            this.pilesDeCartesWagon.defausser(carteTransportX);
+        }
+    }
+
 }

@@ -32,14 +32,20 @@ public class PilesCartesTransport {
         else if(pilePioche.isEmpty()){
             Collections.shuffle(pileDefausse);
             pilePioche.addAll(pileDefausse);
+            pileDefausse.clear();
         }
-        CarteTransport carteRetournee=pilePioche.get(0);
-        pilePioche.remove(0);
+        CarteTransport carteRetournee=pilePioche.remove(0);
         return carteRetournee;
     }
 
     public void defausser(CarteTransport carte) {
         this.pileDefausse.add(carte);
+    }
+
+    public void remplacer(){
+
+        Collections.shuffle(pileDefausse);
+        pilePioche.addAll(pileDefausse);
     }
 
     /**
