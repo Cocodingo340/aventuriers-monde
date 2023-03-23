@@ -139,11 +139,24 @@ public class Joueur {
 
 
         List<String> choixPossibles=new ArrayList<>();
+        List<String> choixVilles=new ArrayList<>();
+        List<String> choixCartesVisibles=new ArrayList<>();
+        List<String> choixRoutes=new ArrayList<>();
         for (Ville v: jeu.getPortsLibres()) {
             choixPossibles.add(v.nom());
+            choixVilles.add(v.nom());
+        }
+        for (CarteTransport c: jeu.getCartesTransportVisibles()) {
+            choixPossibles.add(c.getNom());
+            choixVilles.add(c.getNom());
+        }
+        for (Route r: jeu.getRoutesLibres()) {
+            choixPossibles.add(r.getNom());
+            choixRoutes.add(r.getNom());
         }
 
         choixPossibles.add("PIONS WAGON");choixPossibles.add("DESTINATION");choixPossibles.add("PIONS BATEAU");
+        choixPossibles.add("BATEAU"); choixPossibles.add("WAGON");
 
 
 
@@ -170,16 +183,31 @@ public class Joueur {
             score-=nbPionsEchanges;
 
         }
+
         else if (choix.equals("DESTINATION")) {
            jeu.jouerTourPiocherDestination();
         }
-        else if (choix.equals("UN NOM DE VILLE")) {
-            log(String.format("%s a choisi %s", toLog(), choix));
+        else if (choixRoutes.contains(choix)) {
+            log("Vous avez choisi de capturer la route " + choix);
+
+        }
+        else if (choix.equals("BATEAU")) {
+            piocherCarteBateauDAbord();
+
+        }
+        else if (choix.equals("WAGON")) {
+            piocherCarteWagonDabord();
         }
 
+
         //Faut reussir des que le joueur va cliquer sur une ville avec un port libre, bah ça va prendre le port libre en question
-        else if (choixPossibles.contains(choix)) {
-            prendrePort(jeu.getPortsLibres().get(choixPossibles.indexOf(choix)));
+        else if (choixVilles.contains(choix)) {
+            log("Vous avez choisi de construire un port à " + choix);
+            for (Ville v: jeu.getPortsLibres()) {
+                if (v.nom().equals(choix)) {
+                    prendrePort(v);
+                }
+            }
         }
 
     }
@@ -378,6 +406,78 @@ public class Joueur {
         return false;
     }
 
+
+
+    public void piocherCarteWagonDabord(){
+        List<String> choixPossibles = new ArrayList<>();
+        choixPossibles.add("WAGON");choixPossibles.add("BATEAU");
+        this.cartesTransport.add(jeu.piocherCarteWagon());
+        for (CarteTransport c: jeu.getCartesTransportVisibles()) {
+            choixPossibles.add(c.getNom());
+        }
+        List<String> BateauOuWagon= new ArrayList<>();
+        BateauOuWagon.add("WAGON");BateauOuWagon.add("BATEAU");
+
+        String choix = choisir("Quelle autre carte voulez-vous piocher ?", choixPossibles, null, true);
+        if(choix.equals("BATEAU")){
+            this.cartesTransport.add(jeu.piocherCarteBateau());
+        }
+        if(choix.equals("WAGON")){
+            this.cartesTransport.add(jeu.piocherCarteWagon());
+        }
+        if (choixPossibles.contains(choix)){
+            for (CarteTransport c: jeu.getCartesTransportVisibles()) {
+                if(c.getNom().equals(choix)){
+                    jeu.piocherCarteVisible(c);
+                    String choixRemplacement = choisir("Par quelle carte voulez vous remplacer la carte manquante  ?", BateauOuWagon, null, false);
+                    if(choixRemplacement.equals("BATEAU")){
+                        jeu.remplacerCarteVisible(choixRemplacement);
+                    }
+                    if(choixRemplacement.equals("WAGON")){
+                        jeu.remplacerCarteVisible(choixRemplacement);
+                    }
+                    break;
+                }
+            }
+        }
+
+    }
+
+    public void piocherCarteBateauDAbord() {
+        List<String> choixPossibles = new ArrayList<>();
+        choixPossibles.add("WAGON");choixPossibles.add("BATEAU");
+        this.cartesTransport.add(jeu.piocherCarteBateau());
+        for (CarteTransport c: jeu.getCartesTransportVisibles()) {
+            choixPossibles.add(c.getNom());
+        }
+        List<String> BateauOuWagon= new ArrayList<>();
+        BateauOuWagon.add("WAGON");BateauOuWagon.add("BATEAU");
+        String choix = choisir("Quelle autre carte voulez-vous piocher ?", choixPossibles, null, true);
+        if(choix.equals("BATEAU")){
+            this.cartesTransport.add(jeu.piocherCarteBateau());
+        }
+        if(choix.equals("WAGON")){
+            this.cartesTransport.add(jeu.piocherCarteWagon());
+        }
+        if (choixPossibles.contains(choix)){
+            for (CarteTransport c: jeu.getCartesTransportVisibles()) {
+                if(c.getNom().equals(choix)){
+                    this.cartesTransport.add(c);
+                    jeu.getCartesTransportVisibles().remove(c);
+                    String choixRemplacement = choisir("Par quelle carte voulez vous remplacer la carte manquante  ?", BateauOuWagon, null, false);
+                    if(choixRemplacement.equals("BATEAU")){
+                        jeu.getCartesTransportVisibles().add(jeu.piocherCarteBateau());
+                    }
+                    if(choixRemplacement.equals("WAGON")){
+                        jeu.getCartesTransportVisibles().add(jeu.piocherCarteWagon());
+                    }
+                    break;
+                }
+            }
+        }
+
+    }
+
     public boolean peutPayerPort(List<CarteTransport> liste){
         List<Couleur> ListeCouleur = new ArrayList<Couleur>(EnumSet.allOf(Couleur.class));
         for (Couleur c: ListeCouleur) {
@@ -479,6 +579,8 @@ public class Joueur {
     public List<CarteTransport> getCartesTransport() {
         return cartesTransport;
     }
+
+
 
     public List<String> recupererNomCartesTransport(List<CarteTransport> cartesTransport){
         List<String> nomCartes = new ArrayList<>();

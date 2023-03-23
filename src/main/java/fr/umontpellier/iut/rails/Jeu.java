@@ -219,6 +219,20 @@ public class Jeu implements Runnable {
         return d;
     }
 
+    public void piocherCarteVisible(CarteTransport c){
+        this.joueurCourant.ajoutCarteTransport(c);
+        this.cartesTransportVisibles.remove(c);
+    }
+
+    public void remplacerCarteVisible(String choix){
+        if(choix.equals("BATEAU")){
+            this.cartesTransportVisibles.add(this.piocherCarteBateau());
+        }
+        else if (choix.equals("WAGON")){
+            this.cartesTransportVisibles.add(this.piocherCarteWagon());
+        }
+    }
+
     public void distributionDebut(){
 
 
@@ -374,5 +388,14 @@ public class Jeu implements Runnable {
                 Map.entry("instruction", instruction),
                 Map.entry("boutons", boutons),
                 Map.entry("log", log));
+    }
+
+    public Ville getVille(String choix) {
+        for (Ville v : getPortsLibres()) {
+            if (v.nom().equals(choix)) {
+                return v;
+            }
+        }
+        return null;
     }
 }
