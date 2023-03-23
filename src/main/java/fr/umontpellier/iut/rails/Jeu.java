@@ -233,7 +233,10 @@ public class Jeu implements Runnable {
         }
     }
 
-    public void distributionDebut(){
+    public void siPiocheVide(){
+        if(piocheWagonEstVide()){
+
+        }
 
 
     }
