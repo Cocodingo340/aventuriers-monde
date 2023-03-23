@@ -139,11 +139,10 @@ public class Joueur {
 
 
         List<String> choixPossibles=new ArrayList<>();
-        List<String> villesPortsLibres=new ArrayList<>();
         for (Ville v: jeu.getPortsLibres()) {
-            villesPortsLibres.add(v.nom());
+            choixPossibles.add(v.nom());
         }
-        choixPossibles.addAll(villesPortsLibres);
+
         choixPossibles.add("PIONS WAGON");choixPossibles.add("DESTINATION");choixPossibles.add("PIONS BATEAU");
 
 
@@ -179,8 +178,8 @@ public class Joueur {
         }
 
         //Faut reussir des que le joueur va cliquer sur une ville avec un port libre, bah ça va prendre le port libre en question
-        else if (villesPortsLibres.contains(choix)) {
-            prendrePort(jeu.getPortsLibres().get(villesPortsLibres.indexOf(choix)));
+        else if (choixPossibles.contains(choix)) {
+            prendrePort(jeu.getPortsLibres().get(choixPossibles.indexOf(choix)));
         }
 
     }
@@ -386,7 +385,6 @@ public class Joueur {
 
     public void prendrePort(Ville ville){
         if(peutPoserPort(ville)){
-            cartesTransport.remove(0);
             Couleur couleur = peutPayerPortAvecQuelleCouleur(this.cartesTransport);
             int nbCarteWagonImmuable = nombreCouleurWagonJoueur(this.cartesTransport,couleur);
             int nbCarteBateauImmuable = nombreCouleurBateauJoueur(this.cartesTransport,couleur);
@@ -419,6 +417,7 @@ public class Joueur {
                             toutesLesCartesTransport.remove(c);
                             toutesLesCartes.remove(c.getNom());
                             this.cartesTransport.remove(c);
+                            this.cartesTransportPosees.add(c);
 
 
                         }
@@ -428,6 +427,7 @@ public class Joueur {
                             toutesLesCartesTransport.remove(c);
                             toutesLesCartes.remove(c.getNom());
                             this.cartesTransport.remove(c);
+                            this.cartesTransportPosees.add(c);
                         }
                         if(c.getType().equals(TypeCarteTransport.JOKER)){
                             if(nbCarteBateauImmuable<2){
@@ -436,6 +436,7 @@ public class Joueur {
                                 toutesLesCartesTransport.remove(c);
                                 toutesLesCartes.remove(c.getNom());
                                 this.cartesTransport.remove(c);
+                                this.cartesTransportPosees.add(c);
                             }
                             else if (nbCarteWagonImmuable<2) {
                                 nbCarteWagonAPayer--;
@@ -443,6 +444,7 @@ public class Joueur {
                                 toutesLesCartesTransport.remove(c);
                                 toutesLesCartes.remove(c.getNom());
                                 this.cartesTransport.remove(c);
+                                this.cartesTransportPosees.add(c);
                             }
                         }
 
