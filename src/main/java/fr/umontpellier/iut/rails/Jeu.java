@@ -112,10 +112,16 @@ public class Jeu implements Runnable {
             joueurs.add(new Joueur(nomJoueur, this, couleurs.remove(0)));
         }
         this.joueurCourant = joueurs.get(0);
+
+
     }
 
     public List<Joueur> getJoueurs() {
         return joueurs;
+    }
+
+    public void enleverRouteLibre(Route route) {
+        routesLibres.remove(route);
     }
 
     public List<Destination> getPileDestinations() {
@@ -232,13 +238,30 @@ public class Jeu implements Runnable {
             this.cartesTransportVisibles.add(this.piocherCarteWagon());
         }
     }
-
-    public void siPiocheVide(){
-        if(piocheWagonEstVide()){
+    public void defausserSi3CartesJokerSontPresent() {
+        int nbJoker = 0;
+        for(CarteTransport c : cartesTransportVisibles){
+            if(c.getType().equals(TypeCarteTransport.JOKER)){
+                nbJoker++;
+            }
 
         }
-
-
+        if(nbJoker>=3){
+            for(CarteTransport c : cartesTransportVisibles){
+                if(c.getType().equals(TypeCarteTransport.BATEAU)){
+                    this.pilesDeCartesBateau.defausser(c);
+                }
+                if(c.getType().equals(TypeCarteTransport.WAGON)){
+                    this.pilesDeCartesBateau.defausser(c);
+                }
+            }
+            for (int i = 0; i < 3; i++) {
+                this.cartesTransportVisibles.add(this.piocherCarteBateau());
+            }
+            for (int i = 0; i < 3; i++) {
+                this.cartesTransportVisibles.add(this.piocherCarteWagon());
+            }
+        }
     }
 
     public void jouerTourPiocherDestination(){
