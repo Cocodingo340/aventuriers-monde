@@ -335,12 +335,32 @@ public class Joueur {
     boolean destinationEstComplete(Destination d) {
         // Cette méthode pour l'instant renvoie false pour que le jeu puisse s'exécuter.
         // À vous de modifier le corps de cette fonction pour qu'elle retourne la valeur attendue.
+        for(Route route: jeu.getRoutesLibres()){
+            if (d.equals(jeu.getRoutesLibres())){
+                return true;
+            }
+        }
         return false;
     }
 
     public int calculerScoreFinal() {
-        throw new RuntimeException("Méthode pas encore implémentée !");
+        int cpt= 0;
+        int change=2;
+        int score1= 0;
+        int score2=0 ;
+        boolean verif= true;
+        while (verif){
+            if (this.nbPionsBateau== this.nbPionsBateauEnReserve || this.nbPionsWagon== this.nbPionsWagonEnReserve || this.nbPionsWagon== this.nbPionsBateauEnReserve || this.nbPionsBateau== this.nbPionsWagonEnReserve){
+                cpt++;
+                score1= this.nbPionsBateau- change;
+                score2= this.nbPionsWagon- change;
+        }
+
+        }
+        return score;
     }
+
+
 
     public boolean peutPoserPort(Ville ville){
         if(ville.estPort() && possedeRouteVille(ville) && peutPayerPort(this.cartesTransport)){
