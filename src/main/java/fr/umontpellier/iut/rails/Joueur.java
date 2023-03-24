@@ -2,6 +2,7 @@ package fr.umontpellier.iut.rails;
 
 import com.sun.source.tree.WhileLoopTree;
 import fr.umontpellier.iut.rails.data.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -142,41 +143,43 @@ public class Joueur {
         // IMPORTANT : Le corps de cette fonction est à réécrire entièrement
         // Un exemple très simple est donné pour illustrer l'utilisation de certaines méthodes
 
+
         boolean choixValide=false;
 
+        while (!choixValide) {
 
 
-            List<String> choixPossibles=new ArrayList<>();
-            List<String> choixVilles=new ArrayList<>();
-            List<String> choixCartesVisibles=new ArrayList<>();
-            List<String> choixRoutes=new ArrayList<>();
-
+            List<String> choixPossibles = new ArrayList<>();
+            List<String> choixVilles = new ArrayList<>();
+            List<String> choixCartesVisibles = new ArrayList<>();
+            List<String> choixRoutes = new ArrayList<>();
 
 
             //TOUTES LES VILLES
-            for (Ville v: jeu.getPortsLibres()) {
-                if(this.possedeRouteVille(v)){
-                    choixPossibles.add(v.nom());
-                    choixVilles.add(v.nom());
-                }
+            for (Ville v : jeu.getPortsLibres()) {
+                choixPossibles.add(v.nom());
+                choixVilles.add(v.nom());
+
             }
 
             //TOUTES LES CARTES TRANSPORT VISIBLES
-            for (CarteTransport c: jeu.getCartesTransportVisibles()) {
+            for (CarteTransport c : jeu.getCartesTransportVisibles()) {
                 choixPossibles.add(c.getNom());
                 choixCartesVisibles.add(c.getNom());
             }
 
             //TOUTES LES ROUTES LIBRES
-            for (Route r: jeu.getRoutesLibres()) {
-                if(this.peutPrendreRouteTerrestre(r)){
-                    choixPossibles.add(r.getNom());
-                    choixRoutes.add(r.getNom());
-                }
+            for (Route r : jeu.getRoutesLibres()) {
+                choixPossibles.add(r.getNom());
+                choixRoutes.add(r.getNom());
+
             }
 
-            choixPossibles.add("PIONS WAGON");choixPossibles.add("DESTINATION");choixPossibles.add("PIONS BATEAU");
-            choixPossibles.add("BATEAU"); choixPossibles.add("WAGON");
+            choixPossibles.add("PIONS WAGON");
+            choixPossibles.add("DESTINATION");
+            choixPossibles.add("PIONS BATEAU");
+            choixPossibles.add("BATEAU");
+            choixPossibles.add("WAGON");
 
             String choixFinal = choisir(
                     "Veuillez choisir une option a effectuer ce tour :\n",
@@ -186,7 +189,7 @@ public class Joueur {
 
 
             if (choixFinal.equals("PIONS WAGON")) {
-                choixValide=true;
+                choixValide = true;
                 int nbPionsEchanges = choisirNombre("Choissisez combien de Pions Wagons voulez-vous prendre", 1, nbPionsBateauEnReserve);
                 nbPionsBateauEnReserve += nbPionsEchanges;
                 nbPionsWagon += nbPionsEchanges;
@@ -194,7 +197,7 @@ public class Joueur {
                 nbPionsBateau -= nbPionsEchanges;
                 score -= nbPionsEchanges;
             } else if (choixFinal.equals("PIONS BATEAU")) {
-                choixValide=true;
+                choixValide = true;
                 int nbPionsEchanges = choisirNombre("Choissisez combien de Pions Bateau voulez-vous prendre", 1, nbPionsWagonEnReserve);
                 nbPionsBateauEnReserve -= nbPionsEchanges;
                 nbPionsWagon -= nbPionsEchanges;
@@ -202,46 +205,40 @@ public class Joueur {
                 nbPionsBateau += nbPionsEchanges;
                 score -= nbPionsEchanges;
 
-            }
-            else if (choixFinal.equals("DESTINATION")) {
-                choixValide=true;
+            } else if (choixFinal.equals("DESTINATION")) {
+                choixValide = true;
                 jeu.jouerTourPiocherDestination();
-            }
-            else if (choixRoutes.contains(choixFinal)) {
-                for (Route a : jeu.getRoutesLibres()) {
-                    if (a.getNom().equals(choixFinal)) {
-                        if(a.getClass().equals(RouteTerrestre.class)){
-                            log("Allez-y, prenez la route terrestre !");
-                            prendreRouteTerrestre(a);
-                        }
-                    }
-                }
+            } else if (choixRoutes.contains(choixFinal)) {
 
-            }
-            else if (choixFinal.equals("BATEAU")) {
-                choixValide=true;
+            } else if (choixFinal.equals("BATEAU")) {
+                choixValide = true;
                 piocherCarteBateauDAbord();
 
             } else if (choixFinal.equals("WAGON")) {
-                choixValide=true;
+                choixValide = true;
                 piocherCarteWagonDabord();
-            }
-            else if (choixCartesVisibles.contains(choixFinal)) {
-                choixValide=true;
+            } else if (choixCartesVisibles.contains(choixFinal)) {
+                choixValide = true;
                 for (CarteTransport a : jeu.getCartesTransportVisibles()) {
                     if (a.getNom().equals(choixFinal)) {
                         piocherCarteVisibleDabord(a);
                     }
                 }
-            }
-            else if (choixVilles.contains(choixFinal)) {
+            } else if (choixVilles.contains(choixFinal)) {
                 for (Ville v : jeu.getPortsLibres()) {
-                    if (v.nom().equals(choixFinal) && peutPoserPort(v)) {
-                        prendrePort(v);
+                    if (v.nom().equals(choixFinal)) {
+                        if (peutPoserPort(v)) {
+                            choixValide = true;
+                            prendrePort(v);
+                        } else {
+                            log("Vous ne pouvez pas prendre le port de " + v.nom());
+                            break;
+                        }
+
                     }
                 }
             }
-
+        }
     }
 
     /**
@@ -558,10 +555,15 @@ public class Joueur {
      **************************************************************************/
 
     public boolean peutPoserPort(Ville ville){
-        if(ville.estPort() && possedeRouteVille(ville) && peutPayerPort(this.cartesTransport)){
-            log("Vous pouvez poser un port");
-            return true;
+        if(ville.estPort()){
+            if(possedeRouteVille(ville)){
+                if(peutPayerPort()) {
+                    log("Vous pouvez poser un port");
+                    return true;
+                }
+            }
         }
+
         log("Vous pouvez pas poser un port");
         return false;
 
@@ -569,34 +571,67 @@ public class Joueur {
 
     public void prendrePort(Ville ville){
         if(peutPoserPort(ville)){
-
             List<CarteTransport> listeCartesPourPayer = this.recupererCartesValidesPourPayerPort();
-            List<String> nomListeCartesPourPayer = recupererStringCartesValidesPourPayerPort();
-
-            while (!listeCartesPourPayer.isEmpty()){
-                String choix = choisir(
-                        "Choissisez une carte pour payer",
-                        nomListeCartesPourPayer,
-                        null,
-                        false);
-
-                for (CarteTransport c: listeCartesPourPayer) {
-                    if (c.getNom().equals(choix)) {
-                        if(c.getType().equals(TypeCarteTransport.BATEAU) ) {
-                            jeu.defausserCarteBateau(c);
-                        }
-                        else {
-                            jeu.defausserCarteWagon(c);
-                        }
-                        this.cartesTransport.remove(c);
-                        listeCartesPourPayer.remove(c);
-                        nomListeCartesPourPayer.remove(c.getNom());
-
-                    }
-                }
-            }
+            this.payerPort(listeCartesPourPayer);
             this.ports.add(ville);
         }
+    }
+
+
+    public void payerPort(@NotNull List<CarteTransport> cartesPourPayer){
+        int nbCartesWagonPourPayer=0;
+        int nbCartesBateauPourPayer=0;
+        List<String> nomListeCartesPourPayer = new ArrayList<String>();
+        for (CarteTransport c: cartesPourPayer) {
+            nomListeCartesPourPayer.add(c.getNom());
+            if (c.getType().equals(TypeCarteTransport.BATEAU)){
+                nbCartesBateauPourPayer++;
+            }
+            if (c.getType().equals(TypeCarteTransport.WAGON)){
+                nbCartesWagonPourPayer++;
+            }
+        }
+
+        int resteCartesBateauAPayer = 2;
+        int resteCartesWagonAPayer = 2;
+
+
+
+        while (resteCartesBateauAPayer>0 && resteCartesWagonAPayer>0){
+            String choix = choisir(
+                    "Choissisez une carte pour payer",
+                    nomListeCartesPourPayer,
+                    new ArrayList<>(),
+                    false);
+
+            for (CarteTransport c: cartesPourPayer) {
+                if ((c.getNom()).equals(choix)) {
+                    if(c.getType().equals(TypeCarteTransport.BATEAU) ) {
+                        jeu.defausserCarteBateau(c);
+                        resteCartesBateauAPayer--;
+                    }
+                    else if (c.getType().equals(TypeCarteTransport.WAGON)){
+                        jeu.defausserCarteWagon(c);
+                        resteCartesWagonAPayer--;
+                    }
+                    if (c.getType().equals(TypeCarteTransport.JOKER) && nbCartesBateauPourPayer>=nbCartesWagonPourPayer){
+                        jeu.defausserCarteWagon(c);
+                        resteCartesWagonAPayer--;
+                    }
+                    if (c.getType().equals(TypeCarteTransport.JOKER) && nbCartesBateauPourPayer<=nbCartesWagonPourPayer){
+                        jeu.defausserCarteWagon(c);
+                        resteCartesBateauAPayer--;
+                    }
+                    this.cartesTransport.remove(c);
+                    nomListeCartesPourPayer.remove(c.getNom());
+                    break;
+                }
+
+
+
+            }
+        }
+
     }
 
     public List<CarteTransport> recupererCartesValidesPourPayerPort(){
@@ -620,10 +655,13 @@ public class Joueur {
         }
         return rep;
     }
-    public boolean peutPayerPort(List<CarteTransport> liste){
+    public boolean peutPayerPort(){
+        int sommeCouleur;
+        List<CarteTransport> liste = new ArrayList<>(this.cartesTransport);
         List<Couleur> ListeCouleur = new ArrayList<Couleur>(EnumSet.allOf(Couleur.class));
         for (Couleur c: ListeCouleur) {
-            if(nombreCouleurWagonJoueur(liste,c)+nombreCouleurBateauJoueur(liste,c)+nombreJoker(liste)>=4){
+            sommeCouleur = nombreCouleurWagonJoueur(liste,c)+nombreCouleurBateauJoueur(liste,c)+nombreJoker(liste);
+            if(sommeCouleur>=4){
                 log("Vous avez assez de carte pour payer le port");
                 return true;
             }
@@ -670,13 +708,19 @@ public class Joueur {
 
     public int nombreCouleurWagonJoueur(List<CarteTransport> cartesTransport,Couleur couleur){
 
+        int nombreCouleurWagonJoueur = 0;
         List<CarteTransport> listeCartesWagon = new ArrayList<>();
         for (CarteTransport c: cartesTransport) {
             if(c.getType().equals(TypeCarteTransport.WAGON)){
                 listeCartesWagon.add(c);
             }
         }
-        return Collections.frequency(listeCartesWagon, couleur);
+        for (CarteTransport c: cartesTransport) {
+            if(c.getCouleur().equals(couleur)){
+                nombreCouleurWagonJoueur++;
+            }
+        }
+        return nombreCouleurWagonJoueur;
     }
 
     public List<CarteTransport> recupereCarteWagonDeCouleur(List<CarteTransport> cartesTransport,Couleur couleur){
@@ -697,12 +741,19 @@ public class Joueur {
 
     public int nombreCouleurBateauJoueur(List<CarteTransport> cartesTransport,Couleur couleur){
         List<CarteTransport> listeCartesBateau = new ArrayList<>();
+        int nombreCouleurBateauJoueur = 0;
         for (CarteTransport c: cartesTransport) {
             if(c.getType().equals(TypeCarteTransport.BATEAU)){
                 listeCartesBateau.add(c);
             }
         }
-        return Collections.frequency(listeCartesBateau, couleur);
+        for (CarteTransport c: cartesTransport) {
+            if(c.getCouleur().equals(couleur)){
+                nombreCouleurBateauJoueur++;
+            }
+        }
+
+        return nombreCouleurBateauJoueur;
     }
 
     public List<CarteTransport> recupererCarteBateauDeCouleur(List<CarteTransport> cartesTransport,Couleur couleur){
