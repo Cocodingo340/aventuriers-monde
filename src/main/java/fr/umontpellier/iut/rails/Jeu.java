@@ -335,6 +335,10 @@ public class Jeu implements Runnable {
         return pilesDeCartesBateau.estVide();
     }
 
+    public void enleverPortLibre(Ville v){
+        this.portsLibres.remove(v);
+    }
+
     public void defausserCarteBateau(CarteTransport carte){
         this.pilesDeCartesBateau.defausser(carte);
     }

@@ -574,6 +574,7 @@ public class Joueur {
             List<CarteTransport> listeCartesPourPayer = this.recupererCartesValidesPourPayerPort();
             this.payerPort(listeCartesPourPayer);
             this.ports.add(ville);
+            jeu.enleverPortLibre(ville);
         }
     }
 
@@ -594,10 +595,11 @@ public class Joueur {
 
         int resteCartesBateauAPayer = 2;
         int resteCartesWagonAPayer = 2;
+        int resteAPayer = 4;
 
 
 
-        while (resteCartesBateauAPayer>0 && resteCartesWagonAPayer>0){
+        while (resteAPayer>0){
             String choix = choisir(
                     "Choissisez une carte pour payer",
                     nomListeCartesPourPayer,
@@ -609,27 +611,62 @@ public class Joueur {
                     if(c.getType().equals(TypeCarteTransport.BATEAU) ) {
                         jeu.defausserCarteBateau(c);
                         resteCartesBateauAPayer--;
+                        resteAPayer--;
+                        if(resteCartesBateauAPayer==0){
+                            for (CarteTransport c2: cartesPourPayer) {
+                                if (c2.getType().equals(TypeCarteTransport.BATEAU)) {
+                                    nomListeCartesPourPayer.remove(c2.getNom());
+
+                                }
+                            }
+                        }
                     }
                     else if (c.getType().equals(TypeCarteTransport.WAGON)){
                         jeu.defausserCarteWagon(c);
                         resteCartesWagonAPayer--;
+                        resteAPayer--;
+                        if(resteCartesWagonAPayer==0){
+                            for (CarteTransport c2: cartesPourPayer) {
+                                if (c2.getType().equals(TypeCarteTransport.WAGON)) {
+                                    nomListeCartesPourPayer.remove(c2.getNom());
+                                }
+                            }
+                        }
                     }
-                    if (c.getType().equals(TypeCarteTransport.JOKER) && nbCartesBateauPourPayer>=nbCartesWagonPourPayer){
+                    else if (c.getType().equals(TypeCarteTransport.JOKER) && nbCartesBateauPourPayer>=nbCartesWagonPourPayer){
                         jeu.defausserCarteWagon(c);
                         resteCartesWagonAPayer--;
+                        resteAPayer--;
+                        if(resteCartesWagonAPayer==0){
+                            for (CarteTransport c2: cartesPourPayer) {
+                                if (c2.getType().equals(TypeCarteTransport.WAGON)) {
+                                    nomListeCartesPourPayer.remove(c2.getNom());
+                                }
+                            }
+                        }
                     }
-                    if (c.getType().equals(TypeCarteTransport.JOKER) && nbCartesBateauPourPayer<=nbCartesWagonPourPayer){
+                    else if (c.getType().equals(TypeCarteTransport.JOKER) && nbCartesBateauPourPayer<=nbCartesWagonPourPayer){
                         jeu.defausserCarteWagon(c);
                         resteCartesBateauAPayer--;
+                        resteAPayer--;
+                        if(resteCartesBateauAPayer==0){
+                            for (CarteTransport c2: cartesPourPayer) {
+                                if (c2.getType().equals(TypeCarteTransport.BATEAU)) {
+                                    nomListeCartesPourPayer.remove(c2.getNom());
+                                }
+                            }
+                        }
                     }
                     this.cartesTransport.remove(c);
-                    nomListeCartesPourPayer.remove(c.getNom());
                     break;
+
                 }
 
 
-
             }
+
+
+
         }
 
     }
@@ -638,7 +675,7 @@ public class Joueur {
         Couleur bonneCouleur=peutPayerPortAvecQuelleCouleur(this.cartesTransport);
         List<CarteTransport> listeCartesValidesPourPayer = new ArrayList<CarteTransport>();
         for (CarteTransport c: this.cartesTransport) {
-            if(c.getCouleur().equals(bonneCouleur)){
+            if(c.getCouleur().equals(bonneCouleur) && c.getAncre()){
                 listeCartesValidesPourPayer.add(c);
             }
             if(c.getType().equals(TypeCarteTransport.JOKER)){
