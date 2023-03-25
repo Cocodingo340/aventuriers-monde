@@ -211,14 +211,30 @@ public class Joueur {
             } else if (choixRoutes.contains(choixFinal)) {
                 for (Route r : jeu.getRoutesLibres()) {
                     if (r.getNom().equals(choixFinal)) {
-                        if(r.getClass().equals(RouteTerrestre.class)){
-                            if (peutPrendreRouteTerrestre(r)) {
-                                choixValide = true;
-                                prendreRouteTerrestre(r);
+                        if(r.getClass().equals(RouteTerrestre.class)) {
+                            if (r.getCouleur().equals(Couleur.GRIS)) {
+
+                                if (!peutPayerWagonGrisAvecQuellesCouleurs(this.cartesTransport,r.getLongueur()).isEmpty()) {
+                                    choixValide = true;
+                                    prendreRouteTerrestreGrise(r);
+                                }
+
+                                else{
+                                    log("Vous ne pouvez pas poser cette route terrestre");
+                                    break;
+                                }
+
                             }
-                            else{
-                                log("Vous ne pouvez pas poser cette route terrestre");
-                                break;
+                            else {
+                                if (peutPrendreRouteTerrestre(r)) {
+                                    choixValide = true;
+                                    prendreRouteTerrestre(r);
+                                }
+
+                                else{
+                                    log("Vous ne pouvez pas poser cette route terrestre");
+                                    break;
+                                }
                             }
                         }
                         else if(r.getClass().equals(RouteMaritime.class)){
@@ -880,7 +896,7 @@ public class Joueur {
     }
 
     public boolean peutPrendreRouteTerrestre(Route route){
-        if(this.nombreCouleurWagonJoueur(this.cartesTransport,route.getCouleur())>=route.getLongueur() && this.nbPionsWagon>=route.getLongueur()){
+        if(this.nombreCouleurWagonJoueur(this.cartesTransport,route.getCouleur()) + this.nombreJoker(this.cartesTransport)>=route.getLongueur() && this.nbPionsWagon>=route.getLongueur()){
             return true;
         }
         return false;
@@ -931,7 +947,7 @@ public class Joueur {
     }
 
     public boolean peutPrendreRouteMaritime(Route route){
-        if(this.nombreCouleurBateauJoueurAvecDoubles(route.getCouleur())>=route.getLongueur() && this.nbPionsBateau>=route.getLongueur()){
+        if(this.nombreCouleurBateauJoueurAvecDoubles(route.getCouleur()) + this.nombreJoker(this.cartesTransport) >=route.getLongueur() && this.nbPionsBateau>=route.getLongueur()){
             return true;
         }
         return false;
@@ -939,37 +955,60 @@ public class Joueur {
 
     public void prendreRouteMaritime(Route route){
         List<CarteTransport> copieCarteTransport= new ArrayList<>(this.cartesTransport);
+        List<CarteTransport> CarteTransportDefausse= new ArrayList<>();
         int prix = route.getLongueur();
         List<String> cartesPourPayerString=recupererNomCartesTransport(this.cartesTransport);
         while (prix>0) {
             String choix = choisir("Veuillez Payer pour la route", cartesPourPayerString, null, false);
             for (CarteTransport c : copieCarteTransport) {
                 if (c.getNom().equals(choix)) {
-                    if(c.getType().equals(TypeCarteTransport.BATEAU) || c.getType().equals(TypeCarteTransport.JOKER)){
-                        if(c.getType().equals(TypeCarteTransport.BATEAU)){
-                            if(c.getCouleur().equals(route.getCouleur())){
-                                if (c.estDouble()){
-                                    prix-=2;
-                                }
-                                else{
-                                    prix--;
-                                }
+                    if(c.getType().equals(TypeCarteTransport.BATEAU)){
+                        if(c.getCouleur().equals(route.getCouleur())) {
+                            if (c.estDouble() && prix==1 && combienDeBateauSimpleRestant(CarteTransportDefausse, route.getCouleur())>0) {
+                                copieCarteTransport.remove(c);
+                                break;
+                            }
+                            else if(c.estDouble() && prix==1 && combienDeBateauSimpleRestant(CarteTransportDefausse, route.getCouleur())==0){
+                                prix--;
                                 this.cartesTransport.remove(c);
+                                CarteTransportDefausse.add(c);
                                 jeu.defausserCarteBateau(c);
                                 copieCarteTransport.remove(c);
                                 break;
                             }
+                            else if(c.estDouble() && prix>1){
+                                prix-=2;
+                                this.cartesTransport.remove(c);
+                                jeu.defausserCarteBateau(c);
+                                CarteTransportDefausse.add(c);
+                                copieCarteTransport.remove(c);
+                                break;
+                            }
+                            else if(!c.estDouble() && prix%2==0 && combienDeBateauDoubleRestant(copieCarteTransport, route.getCouleur())>=prix/2 && combienDeBateauSimpleRestant(copieCarteTransport, route.getCouleur())<prix/2){
+                                copieCarteTransport.remove(c);
+                                break;
+                            }
                             else{
+                                prix--;
+                                this.cartesTransport.remove(c);
+                                jeu.defausserCarteBateau(c);
+                                CarteTransportDefausse.add(c);
+                                copieCarteTransport.remove(c);
                                 break;
                             }
                         }
                         else{
-                            prix--;
-                            this.cartesTransport.remove(c);
-                            jeu.defausserCarteWagon(c);
                             copieCarteTransport.remove(c);
                             break;
                         }
+                    }
+                    else if (c.getType().equals(TypeCarteTransport.JOKER)) {
+                        prix--;
+                        this.cartesTransport.remove(c);
+                        CarteTransportDefausse.add(c);
+                        copieCarteTransport.remove(c);
+                        jeu.defausserCarteWagon(c);
+                        break;
                     }
                     else{
                         copieCarteTransport.remove(c);
@@ -977,25 +1016,140 @@ public class Joueur {
                     }
                 }
             }
-
         }
         this.nbPionsBateau-=route.getLongueur();
         this.score+=route.getScore();
         this.routes.add(route);
+        jeu.enleverRouteLibre(route);
+    }
+
+    public void prendreRouteTerrestreGrise(Route route){
+        if(!listeCouleur().isEmpty()) {
+
+
+            List<Couleur> ListeBonneCouleur = peutPayerWagonGrisAvecQuellesCouleurs(this.cartesTransport, route.getLongueur());
+            List<CarteTransport> copieCarteTransport = new ArrayList<>(this.cartesTransport);
+            Couleur couleurFinal=null;
+            int prix = route.getLongueur();
+            List<String> cartesPourPayerString = recupererNomCartesTransport(this.cartesTransport);
+            while (prix > 0) {
+                while(couleurFinal==null) {
+                    String choix = choisir("Veuillez Payer pour la route", cartesPourPayerString, null, false);
+                    for (CarteTransport c : copieCarteTransport) {
+                        if (c.getNom().equals(choix)) {
+                            if (c.getType().equals(TypeCarteTransport.WAGON)) {
+                                if (ListeBonneCouleur.contains(c.getCouleur())) {
+                                    couleurFinal = c.getCouleur();
+                                    prix--;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                } else {
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+
+                            } else if (c.getType().equals(TypeCarteTransport.JOKER)) {
+                                prix--;
+                                this.cartesTransport.remove(c);
+                                jeu.defausserCarteWagon(c);
+                                copieCarteTransport.remove(c);
+                                break;
+                            } else {
+                                copieCarteTransport.remove(c);
+                                break;
+                            }
+                        }
+                    }
+                }
+                String choix = choisir("Veuillez Payer pour la route", cartesPourPayerString, null, false);
+                for (CarteTransport c : copieCarteTransport) {
+                    if (c.getNom().equals(choix)) {
+                        if (c.getType().equals(TypeCarteTransport.WAGON)) {
+                            if (c.getCouleur().equals(couleurFinal)) {
+                                prix--;
+                                this.cartesTransport.remove(c);
+                                jeu.defausserCarteWagon(c);
+                                copieCarteTransport.remove(c);
+                                break;
+                            } else {
+                                copieCarteTransport.remove(c);
+                                break;
+                            }
+
+                        } else if (c.getType().equals(TypeCarteTransport.JOKER)) {
+                            prix--;
+                            this.cartesTransport.remove(c);
+                            jeu.defausserCarteWagon(c);
+                            copieCarteTransport.remove(c);
+                            break;
+                        } else {
+                            copieCarteTransport.remove(c);
+                            break;
+                        }
+                    }
+                }
+
+            }
+            this.nbPionsWagon-=route.getLongueur();
+            this.score+=route.getScore();
+            this.routes.add(route);
+            jeu.enleverRouteLibre(route);
+        }
 
     }
 
-    public int combienDeBateauSimpleRestant(List<CarteTransport> list){
-        int nb=0;
-        for (CarteTransport c: list) {
-            if(c.getType().equals(TypeCarteTransport.BATEAU)){
-                if(!c.estDouble()){
-                    nb++;
+    public List<Couleur> peutPayerWagonGrisAvecQuellesCouleurs(List<CarteTransport> list, int prixRoute){
+        List<Couleur> ListeCouleur = new ArrayList<Couleur>(EnumSet.allOf(Couleur.class));
+        List<Couleur> ListeCouleurFinal = new ArrayList<>();
+        for(Couleur couleur : ListeCouleur){
+            int cpt=0;
+            for (CarteTransport c : list) {
+                if (c.getType().equals(TypeCarteTransport.WAGON)) {
+                    if (c.getCouleur().equals(couleur)) {
+                        cpt+=1;
+                    }
+                }
+            }
+            if(cpt+nombreJoker(list)>=prixRoute){
+                ListeCouleurFinal.add(couleur);
+            }
+        }
+        return ListeCouleurFinal;
+    }
+
+
+    public int combienDeBateauSimpleRestant(List<CarteTransport> list, Couleur couleur) {
+        int nb = 0;
+        for (CarteTransport c : list) {
+            if (c.getType().equals(TypeCarteTransport.BATEAU)) {
+                if (c.getCouleur().equals(couleur)) {
+                    if (!c.estDouble()) {
+                        nb++;
+                    }
                 }
             }
         }
         return nb;
     }
+
+    public int combienDeBateauDoubleRestant(List<CarteTransport> list, Couleur couleur) {
+        int nb = 0;
+        for (CarteTransport c : list) {
+            if (c.getType().equals(TypeCarteTransport.BATEAU)) {
+                if (c.getCouleur().equals(couleur)) {
+                    if (c.estDouble()) {
+                        nb++;
+                    }
+                }
+            }
+        }
+        return nb;
+    }
+
+
+
 
 
 
