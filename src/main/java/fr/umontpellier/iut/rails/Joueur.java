@@ -1328,7 +1328,7 @@ public class Joueur {
         return nb;
     }
 
-    public int compteurDeCarteWagonDeCouleurPlusJoker(Route route, Couleur c, List<CarteTransport> listCartes){
+    public int compteurDeCarteWagonDeCouleurPlusJoker(Couleur c, List<CarteTransport> listCartes){
         int cpt=0;
         for(CarteTransport carte : listCartes){
             if(carte.getType().equals(TypeCarteTransport.WAGON)){
@@ -1351,16 +1351,16 @@ public class Joueur {
         int prix = route.getLongueur();
         int cmbDePaire=0;
         for(Couleur c : ListeCouleur){
-            if(compteurDeCarteWagonDeCouleurPlusJoker(route, c,this.cartesTransport)>=8){
+            if(compteurDeCarteWagonDeCouleurPlusJoker(c,this.cartesTransport)>=8){
                 cmbDePaire+=4;
             }
-            else if(compteurDeCarteWagonDeCouleurPlusJoker(route, c,this.cartesTransport)>=6){
+            else if(compteurDeCarteWagonDeCouleurPlusJoker(c,this.cartesTransport)>=6){
                 cmbDePaire+=3;
             }
-            else if(compteurDeCarteWagonDeCouleurPlusJoker(route, c,this.cartesTransport)>=4){
+            else if(compteurDeCarteWagonDeCouleurPlusJoker(c,this.cartesTransport)>=4){
                 cmbDePaire+=2;
             }
-            else if(compteurDeCarteWagonDeCouleurPlusJoker(route, c,this.cartesTransport)>=2){
+            else if(compteurDeCarteWagonDeCouleurPlusJoker(c,this.cartesTransport)>=2){
                 cmbDePaire+=1;
             }
 
@@ -1376,12 +1376,268 @@ public class Joueur {
 
     public void PrendreRoutePaire(Route route){
         List<CarteTransport> copieCarteTransport= new ArrayList<>(this.cartesTransport);
+        List<CarteTransport> copieCarteTransportMaisComplete= new ArrayList<>(this.cartesTransport);
         List<List<CarteTransport>> ListeDeListeDeCarteTransport = new ArrayList<>();
-        List<Couleur> ListeCouleur = new ArrayList<Couleur>(EnumSet.allOf(Couleur.class));
+        int prix = route.getLongueur()*2;
+        int prixBase = route.getLongueur();
+        int PaireRouge=0;
+        int PaireVert=0;
+        int PaireJaune=0;
+        int PaireViolette=0;
+        int PaireNoire=0;
+        int PaireBlanche=0;
 
 
+        int NbPaireCommence=0;
+        Couleur CouleurBesoinJoker = null;
+        while (CouleurBesoinJoker==null) {
+            for (Couleur c : Couleur.values()) {
+                if (compteurDeCarteWagonDeCouleurPlusJoker(c, copieCarteTransport) == 2) {
+                    CouleurBesoinJoker = c;
+
+                }
+            }
+        }
+
+        List<String> cartesPourPayerString=recupererNomCartesTransport(this.cartesTransport);
+        while (prix>0) {
+            String choix = choisir("Veuillez Payer pour la route", cartesPourPayerString, null, false);
+            for (CarteTransport c : copieCarteTransport) {
+                if (c.getNom().equals(choix)) {
+                    if (c.getType().equals(TypeCarteTransport.WAGON)) {
+                        if (compteurDeCarteWagonDeCouleurPlusJoker(c.getCouleur(),copieCarteTransportMaisComplete) >= 2) {
+                            if(c.getCouleur().equals(Couleur.ROUGE) && (NbPaireCommence < prixBase || PaireRouge==1)){
+                                if(PaireRouge==0){
+                                    NbPaireCommence++;
+                                    prix--;
+                                    PaireRouge++;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                                if(PaireRouge==1){
+                                    prix--;
+                                    PaireRouge=0;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                            }
+                            else if(c.getCouleur().equals(Couleur.VERT) && (NbPaireCommence < prixBase || PaireVert==1)){
+                                if(PaireVert==0){
+                                    NbPaireCommence++;
+                                    prix--;
+                                    PaireVert++;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                                if(PaireVert==1){
+                                    prix--;
+                                    PaireVert=0;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+
+                            }
+                            else if(c.getCouleur().equals(Couleur.JAUNE) && (NbPaireCommence < prixBase || PaireJaune==1)){
+                                if(PaireJaune==0){
+                                    NbPaireCommence++;
+                                    prix--;
+                                    PaireJaune++;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                                if(PaireJaune==1){
+                                    prix--;
+                                    PaireJaune=0;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                            }
+                            else if(c.getCouleur().equals(Couleur.VIOLET) && (NbPaireCommence < prixBase || PaireViolette==1)){
+                                if(PaireViolette==0){
+                                    NbPaireCommence++;
+                                    prix--;
+                                    PaireViolette++;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                                if(PaireViolette==1){
+                                    prix--;
+                                    PaireViolette=0;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                            }
+                            else if(c.getCouleur().equals(Couleur.NOIR) && (NbPaireCommence < prixBase || PaireNoire==1)){
+                                if(PaireNoire==0){
+                                    NbPaireCommence++;
+                                    prix--;
+                                    PaireNoire++;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                                if(PaireNoire==1){
+                                    prix--;
+                                    PaireNoire=0;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                            }
+                            else if(c.getCouleur().equals(Couleur.BLANC) && (NbPaireCommence < prixBase || PaireBlanche==1)){
+                                if(PaireBlanche==0){
+                                    NbPaireCommence++;
+                                    prix--;
+                                    PaireBlanche++;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                                if(PaireBlanche==1){
+                                    prix--;
+                                    PaireBlanche=0;
+                                    this.cartesTransport.remove(c);
+                                    jeu.defausserCarteWagon(c);
+                                    copieCarteTransport.remove(c);
+                                    break;
+                                }
+                            }
+                        } else {
+                            copieCarteTransport.remove(c);
+                            break;
+                        }
+                    }
+                    else if (c.getType().equals(TypeCarteTransport.JOKER) && CouleurBesoinJoker.equals(Couleur.ROUGE)) {
+                        prix--;
+                        if(PaireRouge==0){
+                            PaireRouge++;
+                            NbPaireCommence++;
+                        }
+                        if(PaireRouge==1){
+                            PaireRouge=0;
+                        }
+                        this.cartesTransport.remove(c);
+                        jeu.defausserCarteWagon(c);
+                        copieCarteTransport.remove(c);
+                        break;
+                    }
+                    else if (c.getType().equals(TypeCarteTransport.JOKER) && CouleurBesoinJoker.equals(Couleur.BLANC)) {
+                        prix--;
+                        if(PaireBlanche==0){
+                            PaireBlanche++;
+                            NbPaireCommence++;
+                        }
+                        if(PaireBlanche==1){
+                            PaireBlanche=0;
+                        }
+                        this.cartesTransport.remove(c);
+                        jeu.defausserCarteWagon(c);
+                        copieCarteTransport.remove(c);
+                        break;
+                    }
+                    else if (c.getType().equals(TypeCarteTransport.JOKER) && CouleurBesoinJoker.equals(Couleur.NOIR)) {
+                        prix--;
+                        if(PaireNoire==0){
+                            PaireNoire++;
+                            NbPaireCommence++;
+                        }
+                        if(PaireNoire==1){
+                            PaireNoire=0;
+                        }
+                        this.cartesTransport.remove(c);
+                        jeu.defausserCarteWagon(c);
+                        copieCarteTransport.remove(c);
+                        break;
+                    }
+                    else if (c.getType().equals(TypeCarteTransport.JOKER) && CouleurBesoinJoker.equals(Couleur.VIOLET)) {
+                        prix--;
+                        if(PaireViolette==0){
+                            PaireViolette++;
+                            NbPaireCommence++;
+                        }
+                        if(PaireViolette==1){
+                            PaireViolette=0;
+                        }
+                        this.cartesTransport.remove(c);
+                        jeu.defausserCarteWagon(c);
+                        copieCarteTransport.remove(c);
+                        break;
+                    }
+                    else if (c.getType().equals(TypeCarteTransport.JOKER) && CouleurBesoinJoker.equals(Couleur.JAUNE)) {
+                        prix--;
+                        if(PaireJaune==0){
+                            PaireJaune++;
+                            NbPaireCommence++;
+                        }
+                        if(PaireJaune==1){
+                            PaireJaune=0;
+                        }
+                        this.cartesTransport.remove(c);
+                        jeu.defausserCarteWagon(c);
+                        copieCarteTransport.remove(c);
+                        break;
+                    }
+                    else if (c.getType().equals(TypeCarteTransport.JOKER) && CouleurBesoinJoker.equals(Couleur.VERT)) {
+                        prix--;
+                        if(PaireVert==0){
+                            PaireVert++;
+                            NbPaireCommence++;
+                        }
+                        if(PaireVert==1){
+                            PaireVert=0;
+                        }
+                        this.cartesTransport.remove(c);
+                        jeu.defausserCarteWagon(c);
+                        copieCarteTransport.remove(c);
+                        break;
+                    }
+                    else if (c.getType().equals(TypeCarteTransport.JOKER) && CouleurBesoinJoker.equals(null)) {
+                        prix--;
+                        this.cartesTransport.remove(c);
+                        jeu.defausserCarteWagon(c);
+                        copieCarteTransport.remove(c);
+                        break;
+                    }
+
+                    else {
+                        copieCarteTransport.remove(c);
+                        break;
+                    }
+                }
+
+            }
+
+        }
+        this.nbPionsWagon-=route.getLongueur();
+        this.score+=route.getScore();
+        this.routes.add(route);
 
     }
+
+
+
+
+
+
 
     public boolean aBesoinDUnJokerPourEtreRealise(Couleur c, List<CarteTransport> cartesTransport){
         if(nombreCouleurWagonJoueur(cartesTransport, c) ==1 && nombreJoker(cartesTransport) == 1){
