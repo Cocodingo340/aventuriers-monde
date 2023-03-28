@@ -1,8 +1,6 @@
 package fr.umontpellier.iut.rails;
 
-import com.sun.source.tree.WhileLoopTree;
 import fr.umontpellier.iut.rails.data.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -647,7 +645,7 @@ public class Joueur {
     }
 
 
-    public void payerPort(@NotNull List<CarteTransport> cartesPourPayer){
+    public void payerPort(List<CarteTransport> cartesPourPayer){
         int nbCartesWagonPourPayer=0;
         int nbCartesBateauPourPayer=0;
         List<String> nomListeCartesPourPayer = new ArrayList<String>();
